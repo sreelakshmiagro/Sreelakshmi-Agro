@@ -21,22 +21,17 @@ export function PreloaderUI() {
           className="absolute inset-2 rounded-full border border-dotted border-[#7E1A25] opacity-40"
         />
         
-        {/* Brand Logo inside center */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: [0.9, 1.05, 0.9], opacity: 1 }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="w-16 h-16 sm:w-20 sm:h-20 relative flex items-center justify-center"
-        >
+        {/* Static Brand Logo inside center */}
+        <div className="w-16 h-16 sm:w-20 sm:h-20 relative flex items-center justify-center opacity-100 scale-100">
           <Image
             src="/assets/Sreelakshmiagro logo.png"
             alt="Sreelakshmi Agro"
             width={80}
             height={80}
-            className="object-contain"
+            className="object-contain opacity-100"
             priority
           />
-        </motion.div>
+        </div>
       </div>
 
       {/* Typography & Pulsing Loading Bar */}
@@ -73,12 +68,12 @@ export default function GlobalPreloader() {
   const [navigating, setNavigating] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Initial load duration (1.2 seconds)
+  // Initial load duration (1.0 second)
   useEffect(() => {
     setMounted(true);
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1200);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -87,11 +82,11 @@ export default function GlobalPreloader() {
     const timer = setTimeout(() => {
       setNavigating(false);
       setLoading(false);
-    }, 600);
+    }, 500);
     return () => clearTimeout(timer);
   };
 
-  // Listen to link clicks without blocking event dispatching or pointer events
+  // Listen to link clicks without blocking touch/scroll event propagation
   useEffect(() => {
     const handleLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
@@ -110,7 +105,6 @@ export default function GlobalPreloader() {
             !e.ctrlKey &&
             !e.metaKey
           ) {
-            // Trigger preloader transition asynchronously so Next.js click handler runs unhindered
             setTimeout(() => {
               setNavigating(true);
             }, 0);
@@ -133,17 +127,15 @@ export default function GlobalPreloader() {
         <NavigationEvents onNavigateComplete={handleRouteComplete} />
       </Suspense>
 
-      {/* Full Screen Classic Logo Preloader Overlay */}
+      {/* Full Screen Classic Logo Preloader Overlay - pointer-events-none ensures scroll is never blocked */}
       <AnimatePresence>
         {(loading || navigating) && (
           <motion.div
             key="classic-logo-preloader"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeInOut" } }}
-            className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDF8F2] ${
-              loading ? "pointer-events-auto" : "pointer-events-none"
-            }`}
+            exit={{ opacity: 0, transition: { duration: 0.3, ease: "easeInOut" } }}
+            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDF8F2] pointer-events-none"
           >
             <PreloaderUI />
           </motion.div>
