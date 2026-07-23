@@ -49,6 +49,7 @@ export const metadata: Metadata = {
 };
 
 import MotionProvider from "@/components/providers/MotionProvider";
+import GlobalPreloader from "@/components/common/GlobalPreloader";
 
 export default function RootLayout({
   children,
@@ -62,6 +63,7 @@ export default function RootLayout({
       className={`${lora.variable} ${inter.variable} ${dancingScript.variable} h-full antialiased light`}
     >
       <body style={{ colorScheme: "light" }} className="min-h-full flex flex-col bg-bg-primary text-text-primary">
+        <GlobalPreloader />
         <Navbar />
         <MotionProvider>
           <main className="flex-grow pt-[80px]">
