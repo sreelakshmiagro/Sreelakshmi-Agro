@@ -2,56 +2,25 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Dynamically import DotLottieReact with SSR disabled to prevent WASM/Canvas hydration mismatches
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  { ssr: false }
+);
 
 export function PreloaderUI() {
   return (
     <div className="relative flex flex-col items-center justify-center gap-6">
-      {/* Spinning Brand Ring */}
-      <div className="relative flex items-center justify-center w-28 h-28 sm:w-36 sm:h-36">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-          className="absolute inset-0 rounded-full border-2 border-dashed border-[#DF9820] opacity-60"
+      <div className="w-56 h-56 sm:w-72 sm:h-72 flex items-center justify-center">
+        <DotLottieReact
+          src="/assets/K67zZn97rq.lottie"
+          loop
+          autoplay
+          style={{ width: "100%", height: "100%" }}
         />
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-          className="absolute inset-2 rounded-full border border-dotted border-[#7E1A25] opacity-40"
-        />
-        
-        {/* Brand Logo inside center */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: [0.9, 1.05, 0.9], opacity: 1 }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="w-16 h-16 sm:w-20 sm:h-20 relative flex items-center justify-center"
-        >
-          <Image
-            src="/assets/Sreelakshmiagro logo.png"
-            alt="Sreelakshmi Agro"
-            width={80}
-            height={80}
-            className="object-contain"
-            priority
-          />
-        </motion.div>
-      </div>
-
-      {/* Typography & Pulsing Loading Bar */}
-      <div className="flex flex-col items-center gap-2">
-        <span className="font-serif text-lg sm:text-xl font-bold tracking-wider text-[#7E1A25]">
-          SREELAKSHMI AGRO
-        </span>
-        <div className="w-32 h-1 bg-[#EFE9E0] rounded-full overflow-hidden relative">
-          <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-            className="w-full h-full bg-[#DF9820] rounded-full"
-          />
-        </div>
       </div>
     </div>
   );
@@ -78,7 +47,7 @@ export default function GlobalPreloader() {
     setMounted(true);
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -169,11 +138,11 @@ export default function GlobalPreloader() {
         )}
       </AnimatePresence>
 
-      {/* Full Screen Brand Preloader overlay (Initial load & page transitions) */}
+      {/* Full Screen Lottie Preloader overlay (Initial load & page transitions) */}
       <AnimatePresence>
         {(loading || navigating) && (
           <motion.div
-            key="classic-global-preloader"
+            key="lottie-global-preloader"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeInOut" } }}
