@@ -1,26 +1,103 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand Primary & Accents from Uploaded Reference Image */
+  --color-brand-primary: #7E1A25;
+  --color-brand-secondary: #9D222B;
+  --color-brand-gold: #DF9820;
+  --color-brand-wheat: #E4A619;
+  --color-brand-cream: #FAF4EA;
+  --color-brand-brown: #8C5319;
+
+  /* Warm Organic Surface Palette */
+  --color-bg-primary: #FDF8F2;
+  --color-bg-secondary: #FAF4EA;
+  --color-bg-tertiary: #F7F1E7;
+
+  /* Warm Charcoal/Brown Typography Colors */
+  --color-text-primary: #38271D;
+  --color-text-secondary: #70655F;
+  --color-text-tertiary: #A69E98;
+
+  /* Warm Structural Accents */
+  --color-border-light: #EFE9E0;
+
+  /* Fonts */
+  --font-serif: var(--font-lora), serif;
+  --font-sans: var(--font-inter), sans-serif;
+  --font-cursive: var(--font-dancing-script), cursive;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-pulse-slow: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+:root {
+  --background: #FDF8F2;
+  --foreground: #38271D;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0F172A;
+    --foreground: #F8FAFC;
+    
+    /* Dark Theme Token Overrides */
+    --color-bg-primary: #0F172A;
+    --color-bg-secondary: #1E293B;
+    --color-bg-tertiary: #0F172A;
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #CBD5E1;
+    --color-border-light: #334155;
   }
 }
 
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Smooth Focus Rings */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-brand-gold);
+  outline-offset: 2px;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(253, 248, 242, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.font-cursive {
+  font-family: var(--font-cursive);
 }
