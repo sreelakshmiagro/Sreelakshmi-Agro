@@ -69,15 +69,18 @@ export default function GlobalPreloader() {
     setMounted(true);
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1200);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  // When pathname or searchParams change, route transition is complete
+  // When pathname or searchParams change, hold preloader for 600ms minimum transition
   useEffect(() => {
     if (!mounted) return;
-    setNavigating(false);
-    setLoading(false);
+    const timer = setTimeout(() => {
+      setNavigating(false);
+      setLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
   }, [pathname, searchParams, mounted]);
 
   // Intercept history.pushState and replaceState to catch Next.js router transitions instantly
@@ -146,16 +149,16 @@ export default function GlobalPreloader() {
         {navigating && (
           <motion.div
             initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ scaleX: 0.7 }}
+            animate={{ scaleX: 0.8 }}
             exit={{ scaleX: 1, opacity: 0, transition: { duration: 0.3 } }}
-            transition={{ duration: 3, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             style={{ transformOrigin: "0%" }}
             className="fixed top-0 left-0 right-0 h-1.5 bg-[#DF9820] z-[100000] shadow-[0_0_10px_#DF9820]"
           />
         )}
       </AnimatePresence>
 
-      {/* Full Screen Brand Preloader overlay (Initial load & full nav) */}
+      {/* Full Screen Brand Preloader overlay (Initial load & page transitions) */}
       <AnimatePresence>
         {(loading || navigating) && (
           <motion.div
