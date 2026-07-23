@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -57,12 +57,21 @@ export function PreloaderUI() {
   );
 }
 
+function NavigationEvents({ onNavigateComplete }: { onNavigateComplete: () => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    onNavigateComplete();
+  }, [pathname, searchParams, onNavigateComplete]);
+
+  return null;
+}
+
 export default function GlobalPreloader() {
   const [loading, setLoading] = useState(true);
   const [navigating, setNavigating] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   // Initial load duration
   useEffect(() => {
@@ -73,15 +82,13 @@ export default function GlobalPreloader() {
     return () => clearTimeout(timer);
   }, []);
 
-  // When pathname or searchParams change, hold preloader for 600ms minimum transition
-  useEffect(() => {
+  const handleRouteComplete = () => {
     if (!mounted) return;
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       setNavigating(false);
       setLoading(false);
     }, 600);
-    return () => clearTimeout(timer);
-  }, [pathname, searchParams, mounted]);
+  };
 
   // Intercept history.pushState and replaceState to catch Next.js router transitions instantly
   useEffect(() => {
@@ -144,6 +151,10 @@ export default function GlobalPreloader() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <NavigationEvents onNavigateComplete={handleRouteComplete} />
+      </Suspense>
+
       {/* Top Progress Bar for Instant Touch/Click Nav Indicator */}
       <AnimatePresence>
         {navigating && (
