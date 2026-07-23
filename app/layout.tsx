@@ -61,9 +61,9 @@ export default function RootLayout({
     <html
       lang="en"
       style={{ colorScheme: "light" }}
-      className={`${lora.variable} ${inter.variable} ${dancingScript.variable} h-full antialiased light`}
+      className={`${lora.variable} ${inter.variable} ${dancingScript.variable} antialiased light`}
     >
-      <body style={{ colorScheme: "light" }} className="min-h-full flex flex-col bg-bg-primary text-text-primary">
+      <body style={{ colorScheme: "light" }} className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         <Suspense fallback={null}>
           <GlobalPreloader />
         </Suspense>
