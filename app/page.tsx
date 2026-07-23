@@ -6,7 +6,6 @@ import WhyChooseUs from "@/features/home/WhyChooseUs";
 import FlagshipShowcase from "@/features/home/FlagshipShowcase";
 import DistributorCTA from "@/features/home/DistributorCTA";
 import Testimonials from "@/features/home/Testimonials";
-import GalleryPreview from "@/features/home/GalleryPreview";
 import FAQPreview from "@/features/home/FAQPreview";
 import FinalCTA from "@/features/home/FinalCTA";
 
@@ -41,9 +40,6 @@ export default async function HomePage() {
 
       {/* 9. Client & Distributor Testimonials Slider */}
       <Testimonials data={testimonials} />
-
-      {/* 10. Visual Gallery Preview */}
-      <GalleryPreview />
 
       {/* 11. FAQ Accordions Preview */}
       <FAQPreview data={faqs} />

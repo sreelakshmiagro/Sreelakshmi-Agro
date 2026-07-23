@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus, ArrowRight } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
@@ -41,7 +40,7 @@ export default function FAQPreview({ data }: { data?: FAQData[] }) {
       <div className="max-w-[1280px] mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           
-          {/* Left Column: Heading and links */}
+          {/* Left Column: Heading */}
           <div className="lg:col-span-4 flex flex-col gap-5 text-left">
             <div className="flex flex-col gap-2">
               <span className="font-sans text-xs sm:text-sm font-bold text-brand-primary uppercase tracking-widest">
@@ -50,9 +49,6 @@ export default function FAQPreview({ data }: { data?: FAQData[] }) {
               <h2 className="font-serif text-3xl text-text-primary leading-tight">
                 Frequently Asked Questions
               </h2>
-              <p className="font-sans text-text-secondary text-sm leading-relaxed mt-2">
-                Have questions about parboiled wheat benefits, packaging, or stockist onboarding? Explore our quick answers.
-              </p>
             </div>
           </div>
 
