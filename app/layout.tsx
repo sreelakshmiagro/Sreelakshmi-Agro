@@ -58,9 +58,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${lora.variable} ${inter.variable} ${dancingScript.variable} h-full antialiased`}
+      style={{ colorScheme: "light" }}
+      className={`${lora.variable} ${inter.variable} ${dancingScript.variable} h-full antialiased light`}
     >
-      <body className="min-h-full flex flex-col bg-bg-primary text-text-primary">
+      <body style={{ colorScheme: "light" }} className="min-h-full flex flex-col bg-bg-primary text-text-primary">
         <Navbar />
         <MotionProvider>
           <main className="flex-grow pt-[80px]">

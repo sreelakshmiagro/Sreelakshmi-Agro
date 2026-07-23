@@ -44,23 +44,14 @@
 }
 
 :root {
+  color-scheme: light;
   --background: #FDF8F2;
   --foreground: #38271D;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0F172A;
-    --foreground: #F8FAFC;
-    
-    /* Dark Theme Token Overrides */
-    --color-bg-primary: #0F172A;
-    --color-bg-secondary: #1E293B;
-    --color-bg-tertiary: #0F172A;
-    --color-text-primary: #F8FAFC;
-    --color-text-secondary: #CBD5E1;
-    --color-border-light: #334155;
-  }
+/* Force light mode on all system settings */
+html {
+  color-scheme: light;
 }
 
 html,
@@ -72,6 +63,24 @@ body {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile Specific Tweaks: 5px side margin & 2pt font size reduction */
+@media (max-width: 767px) {
+  html {
+    font-size: 14px; /* Reduces base font size by 2 points (16px -> 14px) on mobile */
+  }
+  
+  body {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  
+  .container,
+  main {
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
