@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import BecomeDistributorForm from "@/features/distributor/BecomeDistributorForm";
 import { ShieldCheck, TrendingUp, BarChart, Truck, Sparkles } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Become a Distributor",
   description: "Partner with Sreelakshmi Agro Industries. Explore bulk FMCG business opportunities, stable supplies, and competitive margins on our premium products.",

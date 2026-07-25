@@ -3,6 +3,9 @@ import { getPublishedJobs, getFormConfig } from "@/lib/data";
 import CareersPortal from "@/features/careers/CareersPortal";
 import { TrendingUp, BookOpen, Heart, Sparkles, ShieldCheck } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Careers",
   description: "Join Sreelakshmi Agro Industries. Explore exciting job openings, work culture, learning growth, and careers in FMCG food processing.",

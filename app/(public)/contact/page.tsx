@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import ContactForm from "@/features/contact/ContactForm";
 import { Phone, Mail, MapPin, Clock, MessageSquare } from "lucide-react";
 import { getSiteSettings, getFormConfig } from "@/lib/data";
 
-const GoogleMap = dynamic(() => import("@/components/common/GoogleMap"), {
+const GoogleMap = nextDynamic(() => import("@/components/common/GoogleMap"), {
   loading: () => (
     <div className="w-full h-full bg-bg-tertiary animate-pulse flex items-center justify-center font-sans text-sm text-text-tertiary">
       Loading Location Map...
     </div>
   ),
 });
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Contact Us",
