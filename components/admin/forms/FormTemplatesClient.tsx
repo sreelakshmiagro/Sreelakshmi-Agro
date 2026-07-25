@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { saveFormConfig } from '@/app/(admin)/admin/actions/forms';
 import { useToast } from '@/components/admin/ui/Toast';
 import { Save, Briefcase, Users, Mail, Settings, Eye, Plus, Trash2, X, ListPlus, Tag } from 'lucide-react';
+import { ALL_INDIAN_STATES, getDistrictsForState } from '@/lib/indiaData';
 
 interface FormTemplatesClientProps {
   initialConfigs: Record<string, any>;
@@ -52,14 +53,14 @@ const DEFAULT_DISTRIBUTOR_CONFIG = {
       placeholder: 'Select State',
       required: true,
       type: 'select',
-      options: ['Kerala', 'Tamil Nadu', 'Karnataka', 'Andhra Pradesh', 'Telangana', 'Maharashtra']
+      options: ALL_INDIAN_STATES
     },
     district: {
       label: 'DISTRICT',
       placeholder: 'Select District',
       required: true,
       type: 'select',
-      options: ['Thrissur', 'Ernakulam', 'Palakkad', 'Kozhikode', 'Malappuram', 'Thiruvananthapuram']
+      options: getDistrictsForState('Kerala')
     },
     city: { label: 'CITY / TOWN', placeholder: 'e.g., City Center', required: true, type: 'text' },
     businessType: {

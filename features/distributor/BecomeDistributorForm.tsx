@@ -10,18 +10,7 @@ import { submitDistributorInquiry } from "@/app/actions/leads";
 import FormInput from "@/components/common/FormInput";
 import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
-
-const states = [
-  { label: "State A", value: "State A" },
-  { label: "State B", value: "State B" },
-  { label: "State C", value: "State C" },
-];
-
-const districts = [
-  { label: "District 1", value: "District 1" },
-  { label: "District 2", value: "District 2" },
-  { label: "District 3", value: "District 3" },
-];
+import { ALL_INDIAN_STATES, getDistrictsForState } from "@/lib/indiaData";
 
 const businessTypes = [
   { label: "Wholesaler / Trader", value: "Wholesaler" },
@@ -52,6 +41,8 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
     reset,
   } = useForm({
@@ -73,6 +64,27 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
       consent: undefined as any,
     },
   });
+
+  const selectedState = watch("state");
+
+  // Dynamic States & Districts list sorted alphabetically
+  const stateOptionsFromConfig = cfg.fields?.state?.options?.length ? cfg.fields.state.options : ALL_INDIAN_STATES;
+  const statesList = Array.from(new Set(stateOptionsFromConfig)).sort();
+  const statesOptions = statesList.map((s: any) => ({ label: s, value: s }));
+
+  const dynamicDistricts = getDistrictsForState(selectedState);
+  const districtOptionsFromConfig = cfg.fields?.district?.options?.length ? cfg.fields.district.options : dynamicDistricts;
+  const districtsList = Array.from(new Set(districtOptionsFromConfig)).sort();
+  
+  const districtsOptions = districtsList.length > 0
+    ? districtsList.map((d: any) => ({ label: d, value: d }))
+    : [{ label: selectedState ? "No districts found" : "-- Select State First --", value: "" }];
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setValue("state", val);
+    setValue("district", ""); // Reset district when state changes
+  };
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -153,16 +165,16 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
             {/* Grid 1: Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
-                label="Company Name"
+                label={cfg.fields?.companyName?.label || "Company Name"}
                 id="companyName"
-                placeholder="e.g., Sreelakshmi Distributors"
+                placeholder={cfg.fields?.companyName?.placeholder || "e.g., Sreelakshmi Distributors"}
                 error={errors.companyName?.message}
                 {...register("companyName")}
               />
               <FormInput
-                label="Contact Person Name"
+                label={cfg.fields?.contactPerson?.label || "Contact Person Name"}
                 id="contactPerson"
-                placeholder="e.g., John Doe"
+                placeholder={cfg.fields?.contactPerson?.placeholder || "e.g., John Doe"}
                 error={errors.contactPerson?.message}
                 {...register("contactPerson")}
               />
@@ -171,75 +183,68 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
             {/* Grid 2: Contacts */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormInput
-                label="Mobile Phone Number"
+                label={cfg.fields?.phone?.label || "Mobile Phone Number"}
                 id="phone"
                 type="tel"
-                placeholder="10-digit number"
+                placeholder={cfg.fields?.phone?.placeholder || "10-digit number"}
                 error={errors.phone?.message}
                 {...register("phone")}
               />
               <FormInput
-                label="WhatsApp Number (Optional)"
+                label={cfg.fields?.whatsapp?.label || "WhatsApp Number (Optional)"}
                 id="whatsapp"
                 type="tel"
-                placeholder="10-digit number"
+                placeholder={cfg.fields?.whatsapp?.placeholder || "10-digit number"}
                 error={errors.whatsapp?.message}
                 {...register("whatsapp")}
               />
               <FormInput
-                label="Email Address"
+                label={cfg.fields?.email?.label || "Email Address"}
                 id="email"
                 type="email"
-                placeholder="info@company.com"
+                placeholder={cfg.fields?.email?.placeholder || "info@company.com"}
                 error={errors.email?.message}
                 {...register("email")}
               />
             </div>
 
-            {/* Grid 3: Locations */}
+            {/* Grid 3: Locations (All India States & Cascading Districts) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormSelect
-                label="State"
+                label={cfg.fields?.state?.label || "State"}
                 id="state"
-                options={states}
+                options={statesOptions}
                 error={errors.state?.message}
                 {...register("state")}
+                onChange={handleStateChange}
               />
               <FormSelect
-                label="District"
+                label={cfg.fields?.district?.label || "District"}
                 id="district"
-                options={districts}
+                options={districtsOptions}
                 error={errors.district?.message}
                 {...register("district")}
               />
               <FormInput
-                label="City / Town"
+                label={cfg.fields?.city?.label || "City / Town"}
                 id="city"
-                placeholder="e.g., City Center"
+                placeholder={cfg.fields?.city?.placeholder || "e.g., City Center"}
                 error={errors.city?.message}
                 {...register("city")}
               />
             </div>
 
             {/* Grid 4: Business Parameters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormSelect
-                label="Business Type"
+                label={cfg.fields?.businessType?.label || "Business Type"}
                 id="businessType"
                 options={businessTypes}
                 error={errors.businessType?.message}
                 {...register("businessType")}
               />
-              <FormInput
-                label="Years in Business"
-                id="yearsInBusiness"
-                type="number"
-                placeholder="0"
-                error={errors.yearsInBusiness?.message}
-                {...register("yearsInBusiness")}
-              />
               <FormSelect
-                label="Expected Order Volume"
+                label={cfg.fields?.expectedOrderVolume?.label || "Expected Order Volume"}
                 id="expectedOrderVolume"
                 options={volumes}
                 error={errors.expectedOrderVolume?.message}
@@ -248,17 +253,17 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
             </div>
 
             <FormInput
-              label="Current Brands / Products Handled"
+              label={cfg.fields?.currentProducts?.label || "Current Brands / Products Handled"}
               id="currentProducts"
-              placeholder="e.g., Brand X Flour, Brand Y Rice"
+              placeholder={cfg.fields?.currentProducts?.placeholder || "e.g., Brand X Flour, Brand Y Rice"}
               error={errors.currentProducts?.message}
               {...register("currentProducts")}
             />
 
             <FormTextarea
-              label="Additional Message / Enquiries"
+              label={cfg.fields?.message?.label || "Additional Message / Enquiries"}
               id="message"
-              placeholder="Tell us about your distribution footprint..."
+              placeholder={cfg.fields?.message?.placeholder || "Tell us about your distribution footprint..."}
               error={errors.message?.message}
               {...register("message")}
             />
