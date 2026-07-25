@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Clock, ChefHat } from "lucide-react";
+import { ArrowRight, Clock, ChefHat, Sparkles } from "lucide-react";
 
 const defaultRecipes = [
   {
@@ -44,40 +44,31 @@ export default function RecipesShowcase({ recipesData = [] }: { recipesData?: an
   const searchParams = useSearchParams();
   const productFilter = searchParams ? searchParams.get("product") : null;
 
-  const displayRecipes = recipesData && recipesData.length > 0
-    ? recipesData.map(r => ({
-        id: r.id,
-        title: r.name,
-        time: r.cook_time ? `${r.prep_time || '5 Mins'} + ${r.cook_time}` : (r.prep_time || '20 Mins'),
-        difficulty: r.difficulty || 'Easy',
-        image: r.featured_image || 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
-        ingredients: Array.isArray(r.ingredients) ? r.ingredients : [],
-        instructions: typeof r.steps === 'string' ? r.steps : (Array.isArray(r.steps) ? r.steps.join('\n\n') : ''),
-        relatedProductSlug: r.related_product_slug
-      }))
-    : defaultRecipes;
+  const allFormattedRecipes = (recipesData && recipesData.length > 0 ? recipesData : defaultRecipes).map((r) => ({
+    id: r.id || r.title,
+    title: r.name || r.title,
+    time: r.cook_time ? `${r.prep_time || '5 Mins'} + ${r.cook_time}` : (r.prep_time || '20 Mins'),
+    difficulty: r.difficulty || 'Easy',
+    image: r.featured_image || r.image || 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
+    ingredients: Array.isArray(r.ingredients) ? r.ingredients : [],
+    instructions: typeof r.steps === 'string' ? r.steps : (Array.isArray(r.steps) ? r.steps.join('\n\n') : (r.instructions || '')),
+    relatedProductSlug: r.related_product_slug || r.relatedProductSlug,
+  }));
+
+  // Filter ONLY related recipes when a product filter is active
+  const filteredRecipes = productFilter
+    ? allFormattedRecipes.filter((r) => r.relatedProductSlug === productFilter)
+    : allFormattedRecipes;
+
+  // Fallback to all recipes if no related recipes match the product filter
+  const displayRecipes = filteredRecipes.length > 0 ? filteredRecipes : allFormattedRecipes;
+  const isFiltered = !!productFilter && filteredRecipes.length > 0;
 
   const [activeRecipe, setActiveRecipe] = useState(0);
 
-  // Auto-select recipe related to product when coming from product detail page Explore Recipes button
   useEffect(() => {
-    if (productFilter && displayRecipes.length > 0) {
-      const foundIdx = displayRecipes.findIndex(
-        (rcp) => rcp.relatedProductSlug === productFilter
-      );
-      if (foundIdx !== -1) {
-        setActiveRecipe(foundIdx);
-      }
-    }
-  }, [productFilter, displayRecipes]);
-
-  if (displayRecipes.length === 0) {
-    return (
-      <div className="bg-bg-secondary min-h-screen py-20 text-center">
-        <h2 className="font-serif text-2xl text-text-primary">No recipes available.</h2>
-      </div>
-    );
-  }
+    setActiveRecipe(0);
+  }, [productFilter]);
 
   const currentRecipe = displayRecipes[activeRecipe] || displayRecipes[0];
 
@@ -88,38 +79,52 @@ export default function RecipesShowcase({ recipesData = [] }: { recipesData?: an
       <section className="bg-gradient-to-b from-brand-primary/5 via-transparent to-transparent pt-16 pb-12 overflow-hidden border-b border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 text-center">
           <div className="max-w-3xl mx-auto flex flex-col gap-4 items-center">
-            <span className="font-sans text-xs sm:text-sm font-bold text-brand-primary uppercase tracking-widest">
-              Healthy Cooking
+            <span className="font-sans text-xs sm:text-sm font-bold text-brand-primary uppercase tracking-widest flex items-center gap-1.5">
+              <ChefHat className="w-4 h-4" />
+              <span>Healthy Cooking Collection</span>
             </span>
             <h1 className="font-serif text-4xl sm:text-5xl text-text-primary leading-tight">
-              Delicious Samba Wheat Recipes
+              {isFiltered ? `Recipes for ${productFilter.replace(/-/g, ' ')}` : 'Delicious Samba Wheat Recipes'}
             </h1>
             <p className="font-sans text-base sm:text-lg text-text-secondary leading-relaxed">
-              A highly versatile grain option. Explore quick, step-by-step methods to prepare healthy daily meals.
+              Explore step-by-step cooking methods for nutritious, daily family meals.
             </p>
           </div>
         </div>
       </section>
 
       {/* Main Recipe Tabs & Details Container */}
-      <section className="max-w-[1280px] mx-auto px-4 md:px-8 pt-16">
+      <section className="max-w-[1280px] mx-auto px-4 md:px-8 pt-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Recipe Selection Tabs */}
-          <div className="lg:col-span-4 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-3 lg:pb-0 scrollbar-none">
-            {displayRecipes.map((rcp, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveRecipe(i)}
-                className={`px-5 py-4 rounded-xl font-sans text-sm font-semibold text-left transition-all shrink-0 whitespace-nowrap lg:whitespace-normal w-max lg:w-full border ${
-                  activeRecipe === i
-                    ? "bg-brand-primary text-white border-brand-primary shadow-md"
-                    : "bg-white text-text-secondary border-border-light hover:bg-bg-secondary"
-                }`}
+          <div className="lg:col-span-4 flex flex-col gap-3">
+            <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-3 lg:pb-0 scrollbar-none">
+              {displayRecipes.map((rcp, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveRecipe(i)}
+                  className={`px-5 py-4 rounded-xl font-sans text-sm font-semibold text-left transition-all shrink-0 whitespace-nowrap lg:whitespace-normal w-max lg:w-full border ${
+                    activeRecipe === i
+                      ? "bg-brand-primary text-white border-brand-primary shadow-md"
+                      : "bg-white text-text-secondary border-border-light hover:bg-bg-secondary"
+                  }`}
+                >
+                  {rcp.title}
+                </button>
+              ))}
+            </div>
+
+            {/* User Requirement: More Recipes Button after all related recipes */}
+            {isFiltered && (
+              <Link
+                href="/recipes"
+                className="mt-2 w-full px-5 py-3.5 rounded-xl font-sans text-xs font-bold text-center transition-all bg-white text-brand-primary hover:bg-brand-primary hover:text-white border-2 border-dashed border-brand-primary/40 flex items-center justify-center gap-2 shadow-sm"
               >
-                {rcp.title}
-              </button>
-            ))}
+                <span>More Recipes ({allFormattedRecipes.length - displayRecipes.length} available)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
           </div>
 
           {/* Right Column: Recipe Details Card */}
@@ -184,14 +189,14 @@ export default function RecipesShowcase({ recipesData = [] }: { recipesData?: an
       <section className="max-w-[1280px] mx-auto px-4 md:px-8 mt-16 text-center">
         <div className="bg-bg-secondary border border-border-light rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col gap-1 text-left">
-            <h3 className="font-serif text-xl font-bold text-text-primary">Looking for Premium Samba Broken Wheat?</h3>
-            <p className="font-sans text-sm text-text-secondary">Explore full nutritional specs, processing standards, and wholesale options.</p>
+            <h3 className="font-serif text-xl font-bold text-text-primary">Explore Sreelakshmi Agro Product Range</h3>
+            <p className="font-sans text-sm text-text-secondary">Full nutritional specs, processing standards, and wholesale distribution.</p>
           </div>
           <Link
-            href="/products/samba-broken-wheat"
+            href="/products"
             className="bg-brand-primary hover:bg-brand-secondary text-white font-sans text-sm font-semibold px-6 py-3 rounded-lg shadow-sm transition-all shrink-0 flex items-center gap-2"
           >
-            <span>View Product Details</span>
+            <span>View All Products</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
