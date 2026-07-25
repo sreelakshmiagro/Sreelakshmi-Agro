@@ -39,6 +39,7 @@ export function ProductForm({ productId }: { productId?: string }) {
   const [initialLoading, setInitialLoading] = useState(!!productId);
   const [showDelete, setShowDelete] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'media' | 'details' | 'faqs' | 'seo'>('basic');
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -82,6 +83,11 @@ export function ProductForm({ productId }: { productId?: string }) {
             og_image: data.og_image || '',
           });
 
+          // Mark slug as manually set if existing product
+          if (data.slug) {
+            setIsSlugManuallyEdited(true);
+          }
+
           if (Array.isArray(data.faqs)) {
             setFaqs(data.faqs.map((f: any) => ({ q: f.q || f.question || '', a: f.a || f.answer || '' })));
           }
@@ -100,26 +106,35 @@ export function ProductForm({ productId }: { productId?: string }) {
     }
   }, [productId, router]);
 
-  // Requirement 2: Auto-filling slug from name dynamically
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value;
-    const generatedSlug = name
+  // Helper function to turn text into clean URL slug
+  const slugify = (text: string) => {
+    return text
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
+  };
+
+  // Requirement: DYNAMIC SLUG - updates in real time as name is typed
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    const generatedSlug = slugify(name);
 
     setFormData((prev) => ({
       ...prev,
       name,
-      slug: !productId || !prev.slug ? generatedSlug : prev.slug,
-      // Auto generate SEO title if blank
+      slug: !isSlugManuallyEdited ? generatedSlug : prev.slug,
       seo_title: prev.seo_title ? prev.seo_title : `${name} | Sreelakshmi Agro`,
     }));
   };
 
-  // Requirement 1: Auto-generate SEO metadata based on Name & Description
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsSlugManuallyEdited(true);
+    setFormData({ ...formData, slug: e.target.value });
+  };
+
+  // Requirement: AUTO SEO GENERATOR
   const handleAutoGenerateSEO = () => {
     if (!formData.name) {
       toast.error('Please enter a product name first');
@@ -140,41 +155,27 @@ export function ProductForm({ productId }: { productId?: string }) {
     toast.success('SEO Metadata generated automatically!');
   };
 
-  const handleAddFaq = () => {
-    setFaqs((prev) => [...prev, { q: '', a: '' }]);
-  };
+  const handleAddFaq = () => setFaqs((prev) => [...prev, { q: '', a: '' }]);
+  const handleRemoveFaq = (index: number) => setFaqs((prev) => prev.filter((_, i) => i !== index));
 
-  const handleRemoveFaq = (index: number) => {
-    setFaqs((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleAddBenefit = () => setBenefits((prev) => [...prev, { title: '', desc: '' }]);
+  const handleRemoveBenefit = (index: number) => setBenefits((prev) => prev.filter((_, i) => i !== index));
 
-  const handleAddBenefit = () => {
-    setBenefits((prev) => [...prev, { title: '', desc: '' }]);
-  };
-
-  const handleRemoveBenefit = (index: number) => {
-    setBenefits((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAddNutrition = () => {
-    setNutritionTable((prev) => [...prev, { name: '', value: '' }]);
-  };
-
-  const handleRemoveNutrition = (index: number) => {
-    setNutritionTable((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleAddNutrition = () => setNutritionTable((prev) => [...prev, { name: '', value: '' }]);
+  const handleRemoveNutrition = (index: number) => setNutritionTable((prev) => prev.filter((_, i) => i !== index));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Auto-fill SEO metadata if user left it blank
     const autoSeoTitle = formData.seo_title || `${formData.name} | Sreelakshmi Agro`;
     const autoSeoDesc = formData.seo_description || formData.short_description || `Buy ${formData.name} from Sreelakshmi Agro.`;
     const autoSeoKw = formData.seo_keywords || `${formData.name}, ${formData.category}, Sreelakshmi Agro`;
+    const finalSlug = formData.slug ? slugify(formData.slug) : slugify(formData.name);
 
     const payload = {
       ...formData,
+      slug: finalSlug,
       seo_title: autoSeoTitle,
       seo_description: autoSeoDesc,
       seo_keywords: autoSeoKw,
@@ -239,7 +240,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         )}
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-2">
         <button
           type="button"
@@ -290,7 +291,7 @@ export function ProductForm({ productId }: { productId?: string }) {
 
       <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-border-light bg-white p-6 shadow-sm">
         
-        {/* TAB 1: BASIC INFO & CATEGORY */}
+        {/* TAB 1: BASIC INFO & DYNAMIC SLUG */}
         {activeTab === 'basic' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -307,20 +308,38 @@ export function ProductForm({ productId }: { productId?: string }) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">URL Slug *</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">URL Slug *</label>
+                  {isSlugManuallyEdited && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSlugManuallyEdited(false);
+                        setFormData((prev) => ({ ...prev, slug: slugify(prev.name) }));
+                      }}
+                      className="text-[11px] font-semibold text-brand-primary hover:underline"
+                    >
+                      Reset Auto-Sync
+                    </button>
+                  )}
+                </div>
                 <input
                   required
                   type="text"
                   value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  onChange={handleSlugChange}
                   placeholder="e.g. samba-broken-wheat"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-brand-primary focus:outline-none"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-brand-primary focus:outline-none bg-gray-50/50"
                 />
-                <p className="text-[11px] text-gray-400 mt-1">Auto-generated from product name. Used in website URL: /products/[slug]</p>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  {!isSlugManuallyEdited
+                    ? '✨ Dynamic: Auto-updating as you type product name'
+                    : '✏️ Custom slug active. Click "Reset Auto-Sync" to re-enable dynamic updates.'}
+                </p>
               </div>
             </div>
 
-            {/* Requirement 3: Category Option */}
+            {/* Category Option */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Product Category *</label>
@@ -359,7 +378,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Detailed Story & Description (HTML supported)</label>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Detailed Description (HTML supported)</label>
               <textarea
                 value={formData.long_description}
                 onChange={(e) => setFormData({ ...formData, long_description: e.target.value })}
@@ -417,7 +436,7 @@ export function ProductForm({ productId }: { productId?: string }) {
               onChange={(url) => setFormData({ ...formData, hero_image: url })}
               altText={formData.seo_title || formData.name}
               onAltTextChange={(alt) => setFormData({ ...formData, seo_title: alt })}
-              placeholder="Drag & drop product 3D PNG image or package photo here"
+              placeholder="Drag & drop product image file here or click to browse"
             />
 
             <div className="pt-4 border-t border-gray-100">
@@ -601,7 +620,7 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
         )}
 
-        {/* TAB 5: AUTOMATIC SEO METADATA (REQUIREMENT 1) */}
+        {/* TAB 5: AUTOMATIC SEO METADATA */}
         {activeTab === 'seo' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between bg-brand-primary/5 p-4 rounded-lg border border-brand-primary/10">

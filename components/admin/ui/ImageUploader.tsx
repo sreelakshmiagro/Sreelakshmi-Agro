@@ -2,8 +2,11 @@
 
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
-import { uploadProductMedia } from '@/app/(admin)/admin/actions/products';
+import { Upload, X } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+
+const SUPABASE_URL = "https://fsyqsenggdudvddekoij.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzeXFzZW5nZ2R1ZHZkZGVrb2lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1NjMyOTEsImV4cCI6MjEwMDEzOTI5MX0.ixr0Wx2rlJiKR8ps0q4tPkE3hPQOdPwLzTQBP7yBiTA";
 
 interface ImageUploaderProps {
   label: string;
@@ -38,18 +41,54 @@ export function ImageUploader({
     setUploading(true);
     setError('');
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${Date.now()}_${cleanFileName}`;
+    const filePath = `products/${fileName}`;
 
-      const res = await uploadProductMedia(formData);
-      if (res && res.publicUrl) {
-        onChange(res.publicUrl);
-      } else {
-        throw new Error('Failed to retrieve public URL');
+    try {
+      // Strategy 1: Standard Supabase JS Client Upload
+      const supabase = createClient();
+      const { data: uploadData, error: clientUploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: true,
+        });
+
+      if (!clientUploadError && uploadData) {
+        const { data: publicUrlData } = supabase.storage
+          .from('media')
+          .getPublicUrl(filePath);
+        onChange(publicUrlData.publicUrl);
+        setUploading(false);
+        return;
       }
+
+      // Strategy 2: Direct Supabase Storage REST API Upload Fallback
+      console.warn("Client SDK upload issue, trying direct REST upload...", clientUploadError?.message);
+
+      const restUrl = `${SUPABASE_URL}/storage/v1/object/media/${filePath}`;
+      const response = await fetch(restUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': file.type,
+          'x-upsert': 'true',
+        },
+        body: file,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || `Storage REST upload failed with status ${response.status}`);
+      }
+
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/media/${filePath}`;
+      onChange(publicUrl);
     } catch (err: any) {
-      setError(err.message || 'Failed to upload image. Please try again.');
+      console.error("Upload error:", err);
+      setError(err.message || 'Failed to upload image. Please try pasting image URL directly below.');
     } finally {
       setUploading(false);
     }
@@ -86,7 +125,7 @@ export function ImageUploader({
       {value ? (
         <div className="relative border border-border-light rounded-lg p-3 bg-gray-50 flex flex-col sm:flex-row items-center gap-4">
           <div className="relative w-24 h-24 rounded-md overflow-hidden bg-white border border-gray-200 shrink-0">
-            <Image src={value} alt={altText || 'Preview'} fill className="object-contain p-1" />
+            <Image src={value} alt={altText || 'Preview'} fill className="object-contain p-1" unoptimized />
           </div>
 
           <div className="flex-1 w-full space-y-2">
@@ -150,25 +189,16 @@ export function ImageUploader({
         </div>
       )}
 
-      {/* Manual URL Input fallback */}
-      {!value && (
-        <div className="flex items-center gap-2 pt-1">
-          <input
-            type="text"
-            placeholder="Or paste external image URL (https://...)"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                onChange((e.target as HTMLInputElement).value);
-              }
-            }}
-            onBlur={(e) => {
-              if (e.target.value) onChange(e.target.value);
-            }}
-            className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-xs focus:border-brand-primary focus:outline-none"
-          />
-        </div>
-      )}
+      {/* Manual URL Input fallback - Always accessible */}
+      <div className="flex items-center gap-2 pt-1">
+        <input
+          type="text"
+          value={value || ''}
+          placeholder="Or paste image URL (https://...)"
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-xs focus:border-brand-primary focus:outline-none"
+        />
+      </div>
 
       <input
         ref={fileInputRef}
