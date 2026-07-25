@@ -10,7 +10,14 @@ import { submitContactInquiry } from "@/app/actions/leads";
 import FormInput from "@/components/common/FormInput";
 import FormTextarea from "@/components/common/FormTextarea";
 
-export default function ContactForm() {
+export default function ContactForm({ formConfig }: { formConfig?: any }) {
+  const cfg = formConfig || {
+    title: "Send Us a Quick Message",
+    subtitle: "We generally respond to messages within 24 business hours.",
+    buttonText: "Send Message →",
+    successMessage: "Thank you for contacting us. Our operations team will get in touch with you shortly."
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -73,7 +80,7 @@ export default function ContactForm() {
                 Message Sent Successfully
               </h3>
               <p className="font-sans text-xs sm:text-sm text-text-secondary leading-relaxed max-w-sm mx-auto">
-                Thank you for contacting us. Our operations team will get in touch with you shortly.
+                {cfg.successMessage || "Thank you for contacting us. Our operations team will get in touch with you shortly."}
               </p>
             </div>
             <button
@@ -93,10 +100,10 @@ export default function ContactForm() {
           >
             <div>
               <h3 className="font-serif text-lg font-bold text-text-primary">
-                Send Us a Quick Message
+                {cfg.title || "Send Us a Quick Message"}
               </h3>
               <p className="font-sans text-xs text-text-secondary mt-0.5">
-                We generally respond to messages within 24 business hours.
+                {cfg.subtitle || "We generally respond to messages within 24 business hours."}
               </p>
             </div>
 
@@ -162,7 +169,7 @@ export default function ContactForm() {
                 </>
               ) : (
                 <>
-                  <span>Send Message</span>
+                  <span>{cfg.buttonText || "Send Message"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

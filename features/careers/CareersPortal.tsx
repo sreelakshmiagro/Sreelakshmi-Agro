@@ -78,7 +78,7 @@ const mockJobs: Job[] = [
   }
 ];
 
-export default function CareersPortal({ jobs }: { jobs?: any[] }) {
+export default function CareersPortal({ jobs, formConfig }: { jobs?: any[]; formConfig?: any }) {
   const displayJobs = jobs && jobs.length > 0
     ? jobs.map(j => ({
         id: j.id,
@@ -184,18 +184,10 @@ export default function CareersPortal({ jobs }: { jobs?: any[] }) {
 
       {/* Application Form fold */}
       <div id="application-form" className="scroll-mt-24">
-        <div className="text-center max-w-2xl mx-auto flex flex-col gap-3 mb-10">
-          <h2 className="font-serif text-2xl font-bold text-text-primary">
-            Career Onboarding Questionnaire
-          </h2>
-          <p className="font-sans text-sm text-text-secondary leading-relaxed">
-            Please fill out the following profile. Make sure to attach your current resume.
-          </p>
-        </div>
-
         <CareerForm
           positions={displayJobs.map((j) => ({ id: j.id, title: j.title }))}
           selectedPositionId={formPositionId}
+          formConfig={formConfig}
         />
       </div>
 

@@ -90,3 +90,52 @@ export async function getFormCounts() {
     applications: applications.count || 0
   };
 }
+
+export async function getFormConfigs() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('site_settings')
+    .select('*')
+    .in('setting_key', ['form_careers_config', 'form_distributor_config', 'form_contact_config']);
+  
+  const configs: Record<string, any> = {};
+  (data || []).forEach((row) => {
+    try {
+      configs[row.setting_key] = JSON.parse(row.setting_value);
+    } catch {
+      configs[row.setting_key] = null;
+    }
+  });
+  return configs;
+}
+
+export async function saveFormConfig(settingKey: string, configObj: any) {
+  const supabase = await createClient();
+  const jsonValue = JSON.stringify(configObj);
+
+  const { data: existing } = await supabase
+    .from('site_settings')
+    .select('id')
+    .eq('setting_key', settingKey)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('site_settings')
+      .update({ setting_value: jsonValue })
+      .eq('setting_key', settingKey);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase
+      .from('site_settings')
+      .insert([{ setting_key: settingKey, setting_value: jsonValue }]);
+    if (error) throw new Error(error.message);
+  }
+
+  revalidatePath('/admin/forms');
+  revalidatePath('/admin/forms/templates');
+  revalidatePath('/careers');
+  revalidatePath('/contact');
+  revalidatePath('/become-distributor');
+  return { success: true };
+}

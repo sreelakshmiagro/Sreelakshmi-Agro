@@ -41,7 +41,11 @@ const steps = [
   { number: "04", title: "Onboarding Approval", desc: "Finalize compliance checks, verify credentials, and dispatch the first shipment." },
 ];
 
-export default function BecomeDistributorPage() {
+import { getFormConfig } from "@/lib/data";
+
+export default async function BecomeDistributorPage() {
+  const formConfig = await getFormConfig("form_distributor_config");
+
   return (
     <div className="bg-bg-secondary min-h-screen">
       {/* Section 1: Hero */}
@@ -136,7 +140,7 @@ export default function BecomeDistributorPage() {
       {/* Section 4: Questionnaire Form */}
       <section id="inquiry-form" className="py-20">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-          <BecomeDistributorForm />
+          <BecomeDistributorForm formConfig={formConfig} />
         </div>
       </section>
     </div>

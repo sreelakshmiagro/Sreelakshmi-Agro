@@ -44,7 +44,11 @@ const contacts = [
   },
 ];
 
-export default function ContactPage() {
+import { getFormConfig } from "@/lib/data";
+
+export default async function ContactPage() {
+  const formConfig = await getFormConfig("form_contact_config");
+
   return (
     <div className="bg-bg-secondary min-h-screen">
       
@@ -134,7 +138,7 @@ export default function ContactPage() {
 
           {/* Right Column: Ingestion Form */}
           <div className="lg:col-span-7">
-            <ContactForm />
+            <ContactForm formConfig={formConfig} />
           </div>
 
         </div>

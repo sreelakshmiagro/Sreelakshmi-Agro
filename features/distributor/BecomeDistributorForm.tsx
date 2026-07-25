@@ -37,7 +37,14 @@ const volumes = [
   { label: "Above 50 Tons / Month", value: "above-50" },
 ];
 
-export default function BecomeDistributorForm() {
+export default function BecomeDistributorForm({ formConfig }: { formConfig?: any }) {
+  const cfg = formConfig || {
+    title: "Distributor Inquiry Form",
+    subtitle: "Please provide accurate commercial details to accelerate the onboarding check.",
+    buttonText: "Submit Partner Inquiry",
+    successMessage: "Thank you for your interest in Sreelakshmi Agro Industries. Our business development team will review your details and contact you within 24–48 hours."
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -109,7 +116,7 @@ export default function BecomeDistributorForm() {
                 Inquiry Submitted Successfully
               </h3>
               <p className="font-sans text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
-                Thank you for your interest in Sreelakshmi Agro Industries. Our business development team will review your details and contact you within 24–48 hours.
+                {cfg.successMessage || "Thank you for your interest in Sreelakshmi Agro Industries. Our business development team will review your details and contact you within 24–48 hours."}
               </p>
             </div>
             <button
@@ -129,10 +136,10 @@ export default function BecomeDistributorForm() {
           >
             <div className="border-b border-border-light pb-4">
               <h3 className="font-serif text-xl font-bold text-text-primary">
-                Distributor Inquiry Form
+                {cfg.title || "Distributor Inquiry Form"}
               </h3>
               <p className="font-sans text-xs text-text-secondary mt-1">
-                Please provide accurate commercial details to accelerate the onboarding check.
+                {cfg.subtitle || "Please provide accurate commercial details to accelerate the onboarding check."}
               </p>
             </div>
 
@@ -290,7 +297,7 @@ export default function BecomeDistributorForm() {
                 </>
               ) : (
                 <>
-                  <span>Submit Partner Inquiry</span>
+                  <span>{cfg.buttonText || "Submit Partner Inquiry"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

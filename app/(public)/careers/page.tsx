@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPublishedJobs } from "@/lib/data";
+import { getPublishedJobs, getFormConfig } from "@/lib/data";
 import CareersPortal from "@/features/careers/CareersPortal";
 import { TrendingUp, BookOpen, Heart, Sparkles, ShieldCheck } from "lucide-react";
 
@@ -36,7 +36,10 @@ const culturalPillars = [
 ];
 
 export default async function CareersPage() {
-  const jobs = await getPublishedJobs();
+  const [jobs, formConfig] = await Promise.all([
+    getPublishedJobs(),
+    getFormConfig("form_careers_config")
+  ]);
 
   return (
     <div className="bg-bg-secondary min-h-screen">
@@ -99,7 +102,7 @@ export default async function CareersPage() {
       {/* Section 3: Openings and Application Form */}
       <section className="py-20">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-          <CareersPortal jobs={jobs} />
+          <CareersPortal jobs={jobs} formConfig={formConfig} />
         </div>
       </section>
 

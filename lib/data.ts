@@ -132,3 +132,21 @@ export async function getPageSections(pageSlug: string) {
     .order("sort_order", { ascending: true });
   return data || [];
 }
+
+// ─── Form Configurations ───────────────────────────────
+export async function getFormConfig(key: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("site_settings")
+    .select("setting_value")
+    .eq("setting_key", key)
+    .single();
+  if (data?.setting_value) {
+    try {
+      return JSON.parse(data.setting_value);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}

@@ -16,9 +16,30 @@ interface CareerFormProps {
   positions: { id: string; title: string }[];
   selectedPositionId?: string;
   onSuccess?: () => void;
+  formConfig?: any;
 }
 
-export default function CareerForm({ positions, selectedPositionId = "", onSuccess }: { positions: { id: string; title: string }[]; selectedPositionId?: string; onSuccess?: () => void }) {
+export default function CareerForm({ positions, selectedPositionId = "", onSuccess, formConfig }: CareerFormProps) {
+  const cfg = formConfig || {
+    title: "Submit Job Application",
+    subtitle: "Fill in details and upload your CV (PDF or DOCX format only).",
+    buttonText: "Submit Application",
+    successMessage: "Thank you for applying. Our talent acquisition team will review your resume and experience matches, and contact you if there is a match.",
+    fields: {
+      fullName: { label: "FULL NAME", placeholder: "e.g., Robert Frost" },
+      positionApplied: { label: "POSITION APPLIED FOR", placeholder: "Select Open Opening" },
+      phone: { label: "MOBILE PHONE NUMBER", placeholder: "10-digit number" },
+      email: { label: "EMAIL ADDRESS", placeholder: "you@domain.com" },
+      experienceYears: { label: "TOTAL YEARS OF EXPERIENCE", placeholder: "0" },
+      qualification: { label: "HIGHEST EDUCATIONAL QUALIFICATION", placeholder: "e.g., B.Tech Food Tech / MBA Operations" },
+      currentCompany: { label: "CURRENT COMPANY (OPTIONAL)", placeholder: "e.g., FMCG Corp" },
+      expectedSalary: { label: "EXPECTED SALARY (OPTIONAL)", placeholder: "e.g., 6,000,000 INR" },
+      noticePeriod: { label: "NOTICE PERIOD (OPTIONAL)", placeholder: "e.g., Immediate / 30 Days" },
+      resumeUpload: { label: "UPLOAD CV/RESUME", placeholder: "Drag & drop file or browse" },
+      coverLetter: { label: "COVER LETTER / SUMMARY (OPTIONAL)", placeholder: "Tell us why you are a good fit for this position..." }
+    }
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -115,7 +136,7 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
                 Application Submitted!
               </h3>
               <p className="font-sans text-sm text-text-secondary leading-relaxed max-w-md mx-auto">
-                Thank you for applying. Our talent acquisition team will review your resume and experience matches, and contact you if there is a match.
+                {cfg.successMessage || "Thank you for applying. Our talent acquisition team will review your resume and experience matches, and contact you if there is a match."}
               </p>
             </div>
             <button
@@ -135,10 +156,10 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
           >
             <div className="border-b border-border-light pb-4">
               <h3 className="font-serif text-xl font-bold text-text-primary">
-                Submit Job Application
+                {cfg.title || "Submit Job Application"}
               </h3>
               <p className="font-sans text-xs text-text-secondary mt-1">
-                Fill in details and upload your CV (PDF or DOCX format only).
+                {cfg.subtitle || "Fill in details and upload your CV (PDF or DOCX format only)."}
               </p>
             </div>
 
@@ -307,7 +328,7 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
                 </>
               ) : (
                 <>
-                  <span>Submit Application</span>
+                  <span>{cfg.buttonText || "Submit Application"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
