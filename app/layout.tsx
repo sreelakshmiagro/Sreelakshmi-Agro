@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Lora, Inter, Dancing_Script } from "next/font/google";
 import "./globals.css";
-import Providers from "./providers";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import DistributorModal from "@/components/common/DistributorModal";
+import PublicLayoutWrapper from "@/components/layout/PublicLayoutWrapper";
+import { Suspense } from "react";
+import GlobalPreloader from "@/components/common/GlobalPreloader";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -48,10 +47,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Suspense } from "react";
-import MotionProvider from "@/components/providers/MotionProvider";
-import GlobalPreloader from "@/components/common/GlobalPreloader";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -67,14 +62,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GlobalPreloader />
         </Suspense>
-        <Navbar />
-        <MotionProvider>
-          <main className="flex-grow pt-[80px]">
-            <Providers>{children}</Providers>
-          </main>
-        </MotionProvider>
-        <Footer />
-        <DistributorModal />
+        <PublicLayoutWrapper>{children}</PublicLayoutWrapper>
       </body>
     </html>
   );
