@@ -1,20 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, ArrowRight, Loader } from "lucide-react";
 import { contactSchema, type ContactFormInput } from "@/lib/validation";
 import { submitContactInquiry } from "@/app/actions/leads";
+import { createClient } from "@/lib/supabase/client";
 import FormInput from "@/components/common/FormInput";
 import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
 
 const KNOWN_CONTACT_KEYS = ["name", "phone", "email", "subject", "message"];
 
-export default function ContactForm({ formConfig }: { formConfig?: any }) {
-  const cfg = formConfig || {
+export default function ContactForm({ formConfig: propFormConfig }: { formConfig?: any }) {
+  const [clientConfig, setClientConfig] = useState<any>(null);
+
+  useEffect(() => {
+    if (!propFormConfig) {
+      const supabase = createClient();
+      supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "form_contact_config")
+        .single()
+        .then(({ data }) => {
+          if (data?.setting_value) {
+            try {
+              setClientConfig(JSON.parse(data.setting_value));
+            } catch (e) {}
+          }
+        });
+    }
+  }, [propFormConfig]);
+
+  const cfg = propFormConfig || clientConfig || {
     title: "Send Us a Quick Message",
     subtitle: "We generally respond to messages within 24 business hours.",
     buttonText: "Send Message →",

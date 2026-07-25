@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,8 +32,30 @@ const KNOWN_DISTRIBUTOR_KEYS = [
   "expectedOrderVolume", "currentProducts", "message", "consent"
 ];
 
-export default function BecomeDistributorForm({ formConfig }: { formConfig?: any }) {
-  const cfg = formConfig || {
+import { createClient } from "@/lib/supabase/client";
+
+export default function BecomeDistributorForm({ formConfig: propFormConfig }: { formConfig?: any }) {
+  const [clientConfig, setClientConfig] = useState<any>(null);
+
+  useEffect(() => {
+    if (!propFormConfig) {
+      const supabase = createClient();
+      supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "form_distributor_config")
+        .single()
+        .then(({ data }) => {
+          if (data?.setting_value) {
+            try {
+              setClientConfig(JSON.parse(data.setting_value));
+            } catch (e) {}
+          }
+        });
+    }
+  }, [propFormConfig]);
+
+  const cfg = propFormConfig || clientConfig || {
     title: "Distributor Inquiry Form",
     subtitle: "Please provide accurate commercial details to accelerate the onboarding check.",
     buttonText: "Submit Partner Inquiry",

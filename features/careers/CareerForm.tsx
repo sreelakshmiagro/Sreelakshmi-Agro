@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,8 +26,28 @@ const KNOWN_CAREER_KEYS = [
   "noticePeriod", "resumeUpload", "resumePath", "coverLetter", "consent"
 ];
 
-export default function CareerForm({ positions, selectedPositionId = "", onSuccess, formConfig }: CareerFormProps) {
-  const cfg = formConfig || {
+export default function CareerForm({ positions, selectedPositionId = "", onSuccess, formConfig: propFormConfig }: CareerFormProps) {
+  const [clientConfig, setClientConfig] = useState<any>(null);
+
+  useEffect(() => {
+    if (!propFormConfig) {
+      const supabase = createClient();
+      supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "form_careers_config")
+        .single()
+        .then(({ data }) => {
+          if (data?.setting_value) {
+            try {
+              setClientConfig(JSON.parse(data.setting_value));
+            } catch (e) {}
+          }
+        });
+    }
+  }, [propFormConfig]);
+
+  const cfg = propFormConfig || clientConfig || {
     title: "Submit Job Application",
     subtitle: "Fill in details and upload your CV (PDF or DOCX format only).",
     buttonText: "Submit Application",

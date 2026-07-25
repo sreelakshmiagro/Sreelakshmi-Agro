@@ -1,13 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useDistributorModal } from "@/store/useDistributorModal";
 import BecomeDistributorForm from "@/features/distributor/BecomeDistributorForm";
+import { createClient } from "@/lib/supabase/client";
 
 export default function DistributorModal() {
   const { isOpen, closeModal } = useDistributorModal();
+  const [formConfig, setFormConfig] = useState<any>(null);
+
+  // Fetch latest distributor form configuration when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const supabase = createClient();
+      supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "form_distributor_config")
+        .single()
+        .then(({ data }) => {
+          if (data?.setting_value) {
+            try {
+              setFormConfig(JSON.parse(data.setting_value));
+            } catch (e) {
+              console.error("Failed to parse distributor form config:", e);
+            }
+          }
+        });
+    }
+  }, [isOpen]);
 
   // Handle Escape key to close modal
   useEffect(() => {
@@ -55,7 +78,7 @@ export default function DistributorModal() {
 
             {/* Scrollable Form Area */}
             <div className="overflow-y-auto p-1.5" data-lenis-prevent>
-              <BecomeDistributorForm />
+              <BecomeDistributorForm formConfig={formConfig} />
             </div>
           </motion.div>
         </div>
