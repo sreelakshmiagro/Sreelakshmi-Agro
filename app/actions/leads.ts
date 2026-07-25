@@ -88,13 +88,35 @@ export async function submitJobApplication(rawData: any) {
   const data = result.data;
   const supabase = await createClient();
 
+  const {
+    fullName,
+    email,
+    phone,
+    positionId,
+    experienceYears,
+    qualification,
+    currentCompany,
+    expectedSalary,
+    noticePeriod,
+    resumePath,
+    coverLetter,
+    consent,
+    ...extraFields
+  } = rawData;
+
   const payload = {
-    job_id: data.positionId,
-    applicant_name: sanitizeString(data.fullName),
-    email: data.email.toLowerCase().trim(),
-    phone: data.phone.trim(),
-    resume_url: data.resumePath, // Links to file path in private storage bucket
-    cover_letter: data.coverLetter ? sanitizeString(data.coverLetter) : null,
+    job_id: positionId || null,
+    applicant_name: sanitizeString(fullName),
+    email: email.toLowerCase().trim(),
+    phone: phone.trim(),
+    experience_years: String(experienceYears || 0),
+    qualification: qualification ? sanitizeString(qualification) : null,
+    current_company: currentCompany ? sanitizeString(currentCompany) : null,
+    expected_salary: expectedSalary ? sanitizeString(expectedSalary) : null,
+    notice_period: noticePeriod ? sanitizeString(noticePeriod) : null,
+    resume_url: resumePath || null,
+    cover_letter: coverLetter ? sanitizeString(coverLetter) : null,
+    custom_fields: extraFields || {},
     status: "submitted",
   };
 

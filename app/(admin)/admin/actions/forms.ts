@@ -75,6 +75,14 @@ export async function updateJobApplication(id: string, updates: any) {
   return { success: true };
 }
 
+export async function deleteJobApplication(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('job_applications').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/forms/applications');
+  return { success: true };
+}
+
 export async function getFormCounts() {
   const supabase = await createClient();
   
