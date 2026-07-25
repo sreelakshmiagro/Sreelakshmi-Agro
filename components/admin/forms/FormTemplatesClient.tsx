@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveFormConfig } from '@/app/(admin)/admin/actions/forms';
 import { useToast } from '@/components/admin/ui/Toast';
-import { Save, Briefcase, Users, Mail, Settings, Eye, Plus, Trash2, X, AlertTriangle } from 'lucide-react';
+import { Save, Briefcase, Users, Mail, Settings, Eye, Plus, Trash2, X, ListPlus, Tag } from 'lucide-react';
 
 interface FormTemplatesClientProps {
   initialConfigs: Record<string, any>;
@@ -17,7 +17,13 @@ const DEFAULT_CAREERS_CONFIG = {
   successMessage: 'Thank you for applying. Our talent acquisition team will review your resume and experience matches, and contact you if there is a match.',
   fields: {
     fullName: { label: 'FULL NAME', placeholder: 'e.g., Robert Frost', required: true, type: 'text' },
-    positionApplied: { label: 'POSITION APPLIED FOR', placeholder: 'Select Open Opening', required: true, type: 'select' },
+    positionApplied: {
+      label: 'POSITION APPLIED FOR',
+      placeholder: 'Select Open Opening',
+      required: true,
+      type: 'select',
+      options: ['Plant Manager', 'Quality Assurance Lead', 'Production Supervisor', 'Logistics Executive']
+    },
     phone: { label: 'MOBILE PHONE NUMBER', placeholder: '10-digit number', required: true, type: 'tel' },
     email: { label: 'EMAIL ADDRESS', placeholder: 'you@domain.com', required: true, type: 'email' },
     experienceYears: { label: 'TOTAL YEARS OF EXPERIENCE', placeholder: '0', required: true, type: 'number' },
@@ -41,12 +47,36 @@ const DEFAULT_DISTRIBUTOR_CONFIG = {
     phone: { label: 'MOBILE PHONE NUMBER', placeholder: '10-digit number', required: true, type: 'tel' },
     whatsapp: { label: 'WHATSAPP NUMBER (OPTIONAL)', placeholder: '10-digit number', required: false, type: 'tel' },
     email: { label: 'EMAIL ADDRESS', placeholder: 'info@company.com', required: true, type: 'email' },
-    state: { label: 'STATE', placeholder: 'Select an option', required: true, type: 'select' },
-    district: { label: 'DISTRICT', placeholder: 'Select an option', required: true, type: 'select' },
+    state: {
+      label: 'STATE',
+      placeholder: 'Select State',
+      required: true,
+      type: 'select',
+      options: ['Kerala', 'Tamil Nadu', 'Karnataka', 'Andhra Pradesh', 'Telangana', 'Maharashtra']
+    },
+    district: {
+      label: 'DISTRICT',
+      placeholder: 'Select District',
+      required: true,
+      type: 'select',
+      options: ['Thrissur', 'Ernakulam', 'Palakkad', 'Kozhikode', 'Malappuram', 'Thiruvananthapuram']
+    },
     city: { label: 'CITY / TOWN', placeholder: 'e.g., City Center', required: true, type: 'text' },
-    businessType: { label: 'BUSINESS TYPE', placeholder: 'Select an option', required: true, type: 'select' },
+    businessType: {
+      label: 'BUSINESS TYPE',
+      placeholder: 'Select Business Type',
+      required: true,
+      type: 'select',
+      options: ['Wholesaler / Trader', 'Super Stockist', 'Retail Chain Partner', 'Agro-Inputs Distributor']
+    },
     yearsInBusiness: { label: 'YEARS IN BUSINESS', placeholder: '0', required: true, type: 'number' },
-    expectedOrderVolume: { label: 'EXPECTED ORDER VOLUME', placeholder: 'Select an option', required: true, type: 'select' },
+    expectedOrderVolume: {
+      label: 'EXPECTED ORDER VOLUME',
+      placeholder: 'Select Volume',
+      required: true,
+      type: 'select',
+      options: ['Under 5 Tons / Month', '5 - 15 Tons / Month', '15 - 50 Tons / Month', 'Above 50 Tons / Month']
+    },
     currentProducts: { label: 'CURRENT BRANDS / PRODUCTS HANDLED', placeholder: 'e.g., Brand X Flour, Brand Y Rice', required: false, type: 'text' },
     message: { label: 'ADDITIONAL MESSAGE / ENQUIRIES', placeholder: 'Tell us about your distribution footprint...', required: false, type: 'textarea' },
   }
@@ -79,6 +109,7 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
     placeholder: '',
     type: 'text',
     required: false,
+    optionsInput: '',
   });
 
   const [careersConfig, setCareersConfig] = useState(initialConfigs.form_careers_config || DEFAULT_CAREERS_CONFIG);
@@ -126,6 +157,10 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
     }
 
     const cleanKey = newFieldData.key.replace(/[^a-zA-Z0-9_]/g, '');
+    const optionsArray = newFieldData.type === 'select' && newFieldData.optionsInput.trim()
+      ? newFieldData.optionsInput.split(',').map(s => s.trim()).filter(Boolean)
+      : undefined;
+
     const updatedFields = {
       ...currentConfig.fields,
       [cleanKey]: {
@@ -133,13 +168,41 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
         placeholder: newFieldData.placeholder,
         type: newFieldData.type,
         required: newFieldData.required,
+        ...(optionsArray ? { options: optionsArray } : {})
       }
     };
 
     setCurrentConfig({ ...currentConfig, fields: updatedFields });
     toast.success(`Field "${newFieldData.label}" added successfully!`);
     setShowAddFieldModal(false);
-    setNewFieldData({ key: '', label: '', placeholder: '', type: 'text', required: false });
+    setNewFieldData({ key: '', label: '', placeholder: '', type: 'text', required: false, optionsInput: '' });
+  };
+
+  const handleAddOptionToField = (fieldKey: string, optionVal: string) => {
+    if (!optionVal.trim()) return;
+    const existing = currentConfig.fields[fieldKey]?.options || [];
+    if (existing.includes(optionVal.trim())) return;
+
+    const updatedFields = {
+      ...currentConfig.fields,
+      [fieldKey]: {
+        ...currentConfig.fields[fieldKey],
+        options: [...existing, optionVal.trim()]
+      }
+    };
+    setCurrentConfig({ ...currentConfig, fields: updatedFields });
+  };
+
+  const handleRemoveOptionFromField = (fieldKey: string, optionIdx: number) => {
+    const existing = currentConfig.fields[fieldKey]?.options || [];
+    const updatedFields = {
+      ...currentConfig.fields,
+      [fieldKey]: {
+        ...currentConfig.fields[fieldKey],
+        options: existing.filter((_: string, idx: number) => idx !== optionIdx)
+      }
+    };
+    setCurrentConfig({ ...currentConfig, fields: updatedFields });
   };
 
   return (
@@ -182,7 +245,7 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900 capitalize">{activeFormTab} Form Configuration</h2>
-              <p className="text-xs text-gray-500">Edit titles, subheadings, placeholders, and add/delete form fields</p>
+              <p className="text-xs text-gray-500">Edit titles, subheadings, placeholders, dropdown options, and add/delete form fields</p>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -252,7 +315,7 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
             </div>
           </div>
 
-          {/* Form Fields Settings (User Requirement: Add & Delete Fields) */}
+          {/* Form Fields Settings (User Requirements: Add/Delete & Dropdown CRUD) */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
@@ -269,11 +332,13 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
             
             <div className="space-y-4">
               {Object.entries(currentConfig.fields || {}).map(([key, fieldObj]: [string, any]) => (
-                <div key={key} className="p-3 bg-white border border-gray-200 rounded-md space-y-2 relative group hover:border-brand-primary/40 transition-colors">
+                <div key={key} className="p-3.5 bg-white border border-gray-200 rounded-md space-y-3 relative group hover:border-brand-primary/40 transition-colors">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono font-bold text-gray-500 uppercase flex items-center gap-2">
                       <span>{key}</span>
-                      <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded uppercase font-semibold">{fieldObj.type || 'text'}</span>
+                      <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded uppercase font-semibold">
+                        {fieldObj.type || 'text'}
+                      </span>
                     </span>
 
                     <div className="flex items-center gap-3">
@@ -337,6 +402,69 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
                       />
                     </div>
                   </div>
+
+                  {/* Dropdown Options CRUD (User Requirement: CRUD Dropdown Options) */}
+                  {fieldObj.type === 'select' && (
+                    <div className="bg-gray-50/80 p-3 rounded border border-gray-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[11px] font-bold text-brand-primary uppercase tracking-wider flex items-center gap-1.5">
+                          <Tag className="w-3 h-3" />
+                          <span>Dropdown Options ({(fieldObj.options || []).length})</span>
+                        </label>
+                      </div>
+
+                      {/* Options Tags Repeater */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {(fieldObj.options || []).map((opt: string, idx: number) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 bg-white border border-gray-300 text-gray-700 text-xs px-2 py-1 rounded shadow-xs"
+                          >
+                            <span>{opt}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveOptionFromField(key, idx)}
+                              className="text-gray-400 hover:text-red-600 ml-0.5"
+                              title="Delete option"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Add Option Input */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <input
+                          type="text"
+                          id={`new-opt-${key}`}
+                          placeholder="Add new dropdown option name..."
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const val = (e.target as HTMLInputElement).value;
+                              handleAddOptionToField(key, val);
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }}
+                          className="flex-1 rounded border border-gray-300 px-2.5 py-1 text-xs focus:border-brand-primary focus:outline-none bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const el = document.getElementById(`new-opt-${key}`) as HTMLInputElement;
+                            if (el && el.value) {
+                              handleAddOptionToField(key, el.value);
+                              el.value = '';
+                            }
+                          }}
+                          className="px-3 py-1 bg-brand-primary text-white text-xs font-bold rounded hover:bg-brand-primary/90 transition-colors"
+                        >
+                          + Add Option
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -370,6 +498,20 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
                       placeholder={f.placeholder}
                       className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-xs text-gray-400 cursor-not-allowed"
                     />
+                  ) : f.type === 'select' ? (
+                    <select
+                      disabled
+                      className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-xs text-gray-400 cursor-not-allowed"
+                    >
+                      <option>{f.placeholder || 'Select option'}</option>
+                      {(f.options || []).map((o: string, idx: number) => (
+                        <option key={idx}>{o}</option>
+                      ))}
+                    </select>
+                  ) : f.type === 'file' ? (
+                    <div className="w-full border-2 border-dashed border-gray-200 rounded p-2.5 text-center text-xs text-gray-400 bg-gray-50">
+                      📄 {f.placeholder || 'Drag & drop file or browse'}
+                    </div>
                   ) : (
                     <input
                       disabled
@@ -441,7 +583,7 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Field Type</label>
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Field Type *</label>
                   <select
                     value={newFieldData.type}
                     onChange={(e) => setNewFieldData({ ...newFieldData, type: e.target.value })}
@@ -453,6 +595,7 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
                     <option value="email">Email</option>
                     <option value="tel">Phone (Tel)</option>
                     <option value="select">Dropdown Select</option>
+                    <option value="file">File Upload (PDF/Image/Doc)</option>
                   </select>
                 </div>
 
@@ -468,6 +611,22 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
                   </label>
                 </div>
               </div>
+
+              {/* If Dropdown Select is chosen in modal */}
+              {newFieldData.type === 'select' && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                    Dropdown Options (Comma-Separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={newFieldData.optionsInput}
+                    onChange={(e) => setNewFieldData({ ...newFieldData, optionsInput: e.target.value })}
+                    placeholder="e.g. Option 1, Option 2, Option 3"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-3 border-t">
                 <button
