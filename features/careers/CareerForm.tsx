@@ -103,28 +103,36 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
     ? positions
     : (configuredPositionOptions.length > 0 ? configuredPositionOptions.map((title: string) => ({ id: title, title })) : []);
 
-  // Direct upload to Supabase Private Bucket
+  // Direct upload to Supabase Public Bucket 'media' or Base64 fallback
   const handleResumeUpload = async (file: File): Promise<string> => {
     try {
       const supabase = createClient();
-      const fileExt = file.name.split(".").pop();
+      const fileExt = file.name.split(".").pop() || "pdf";
       const fileName = `${Math.random().toString(36).substring(2, 9)}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `resumes/${fileName}`;
 
+      // Upload to 'media' bucket which has public permissions enabled
       const { data, error } = await supabase.storage
-        .from("resumes")
-        .upload(filePath, file);
+        .from("media")
+        .upload(filePath, file, { cacheControl: "3600", upsert: true });
 
-      if (error) {
-        console.warn("Supabase storage upload fallback:", error.message);
-        return `local-${file.name}`;
+      if (!error && data?.path) {
+        return data.path; // e.g. "resumes/filename.pdf"
       }
 
-      return data.path; // Save reference path
+      console.warn("Supabase storage upload fallback to Base64:", error?.message);
     } catch (err) {
-      console.warn("Resume upload fallback:", err);
-      return `local-${file.name}`;
+      console.warn("Resume upload fallback to Base64:", err);
     }
+
+    // Base64 Data URL Fallback so file content is guaranteed stored and downloadable
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const toast = useToast();

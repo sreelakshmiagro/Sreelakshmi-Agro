@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { updateJobApplication, deleteJobApplication } from '@/app/(admin)/admin/actions/forms';
 import { DataTable } from '@/components/admin/ui/DataTable';
 import { useToast } from '@/components/admin/ui/Toast';
-import { Download, Trash2, Calendar, Briefcase, GraduationCap, Building2, DollarSign, Clock, FileText, Phone, Mail, User } from 'lucide-react';
+import { Download, Trash2, Calendar, Briefcase, GraduationCap, Building2, DollarSign, Clock, FileText, Mail, Phone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function ApplicationsClient({ data }: { data: any[] }) {
@@ -37,12 +37,65 @@ export function ApplicationsClient({ data }: { data: any[] }) {
     }
   };
 
-  const formatResumeUrl = (path?: string) => {
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const handleDownloadResume = (e: React.MouseEvent, applicantName: string, resumePath?: string) => {
+    e.preventDefault();
+    if (!resumePath) {
+      toast.warning('No Resume File', 'No resume file attached to this application.');
+      return;
+    }
+
+    const safeName = (applicantName || 'Candidate').replace(/\s+/g, '_');
+
+    // 1. Base64 Data URL
+    if (resumePath.startsWith('data:')) {
+      const a = document.createElement('a');
+      a.href = resumePath;
+      a.download = `${safeName}_Resume.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success('Resume Downloaded', `Downloaded CV for ${applicantName}`);
+      return;
+    }
+
+    // 2. Full External URL
+    if (resumePath.startsWith('http://') || resumePath.startsWith('https://')) {
+      window.open(resumePath, '_blank');
+      return;
+    }
+
+    // 3. Local test fallback file string
+    if (resumePath.startsWith('local-')) {
+      const fileNameClean = resumePath.replace('local-', '');
+      const textContent = `SREELAKSHMI AGRO INDUSTRIES - CANDIDATE APPLICATION\n\nApplicant Name: ${applicantName}\nSubmitted File Name: ${fileNameClean}\nReference ID: ${resumePath}\nStatus: Submitted`;
+      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${safeName}_Application_Summary.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.info('Application Details Exported', `Downloaded candidate details for ${applicantName}`);
+      return;
+    }
+
+    // 4. Supabase Storage Object (media bucket)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fsyqsenggdudvddekoij.supabase.co';
-    const cleanPath = path.replace(/^\/+/, '');
-    return `${supabaseUrl}/storage/v1/object/public/resumes/${cleanPath}`;
+    const cleanPath = resumePath.replace(/^\/+/, '');
+    const finalUrl = cleanPath.startsWith('media/')
+      ? `${supabaseUrl}/storage/v1/object/public/${cleanPath}`
+      : `${supabaseUrl}/storage/v1/object/public/media/${cleanPath}`;
+
+    const a = document.createElement('a');
+    a.href = finalUrl;
+    a.target = '_blank';
+    a.download = `${safeName}_Resume.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success('Resume Opening', `Opening resume for ${applicantName}`);
   };
 
   const columns = [
@@ -132,7 +185,6 @@ export function ApplicationsClient({ data }: { data: any[] }) {
           {(() => {
             const d = data.find(item => item.id === expandedId);
             if (!d) return null;
-            const resumeUrl = formatResumeUrl(d.resume_url);
 
             return (
               <div className="space-y-6">
@@ -150,24 +202,21 @@ export function ApplicationsClient({ data }: { data: any[] }) {
                     </div>
                   </div>
 
-                  {/* Download Action CTA */}
+                  {/* Working Download Resume Button CTA */}
                   {d.resume_url && (
-                    <a
-                      href={resumeUrl}
-                      download={d.applicant_name ? `${d.applicant_name.replace(/\s+/g, '_')}_Resume.pdf` : 'Candidate_Resume.pdf'}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={(e) => handleDownloadResume(e, d.applicant_name, d.resume_url)}
                       className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-secondary text-white text-xs font-semibold rounded-xl shadow-md transition-all duration-200 hover:scale-[1.02] shrink-0"
                     >
                       <Download className="h-4 w-4" />
                       <span>Download Candidate Resume</span>
-                    </a>
+                    </button>
                   )}
                 </div>
 
-                {/* Grid 1: Contact & Personal Info */}
+                {/* Grid 1: Candidate Full Information */}
                 <div>
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Candidate Summary</h4>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Candidate Full Profile</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="p-3.5 rounded-xl bg-bg-secondary border border-border-light flex items-start gap-3">
                       <Mail className="w-4 h-4 text-brand-primary mt-0.5 shrink-0" />
@@ -249,7 +298,7 @@ export function ApplicationsClient({ data }: { data: any[] }) {
                 {/* Custom Fields (If Any) */}
                 {d.custom_fields && Object.keys(d.custom_fields).length > 0 && (
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Custom Answers</h4>
+                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Custom Form Answers</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {Object.entries(d.custom_fields).map(([k, v]: [string, any]) => (
                         <div key={k} className="text-xs">
