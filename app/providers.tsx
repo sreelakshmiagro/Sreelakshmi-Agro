@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { ToastContainer } from "@/components/admin/ui/Toast";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         className="flex-grow flex flex-col"
       >
         {children}
+        <ToastContainer />
       </motion.div>
     </AnimatePresence>
   );

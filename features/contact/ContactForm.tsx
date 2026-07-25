@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import FormInput from "@/components/common/FormInput";
 import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
+import { useToast } from "@/components/admin/ui/Toast";
 
 const KNOWN_CONTACT_KEYS = ["name", "phone", "email", "subject", "message"];
 
@@ -69,6 +70,8 @@ export default function ContactForm({ formConfig: propFormConfig }: { formConfig
     },
   });
 
+  const toast = useToast();
+
   const onSubmit = async (data: ContactFormInput) => {
     setIsSubmitting(true);
     setErrorMessage("");
@@ -77,16 +80,18 @@ export default function ContactForm({ formConfig: propFormConfig }: { formConfig
       const response = await submitContactInquiry(data);
       if (response.success) {
         setSubmitState("success");
+        toast.success("Message Sent Successfully!", "Our team will respond to your query within 24 business hours.");
         reset();
       } else {
         setSubmitState("error");
-        setErrorMessage(
-          response.error || "There was an issue processing your request. Please try again."
-        );
+        const msg = response.error || "There was an issue processing your request. Please try again.";
+        setErrorMessage(msg);
+        toast.error("Message Failed to Send", msg);
       }
     } catch (err) {
       setSubmitState("error");
       setErrorMessage("An unexpected error occurred. Please try again.");
+      toast.error("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

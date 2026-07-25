@@ -12,6 +12,7 @@ import FormInput from "@/components/common/FormInput";
 import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
 import FileUpload from "@/components/common/FileUpload";
+import { useToast } from "@/components/admin/ui/Toast";
 
 interface CareerFormProps {
   positions: { id: string; title: string }[];
@@ -126,6 +127,8 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
     }
   };
 
+  const toast = useToast();
+
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     setErrorMessage("");
@@ -134,17 +137,19 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
       const response = await submitJobApplication(data);
       if (response.success) {
         setSubmitState("success");
+        toast.success("Job Application Submitted!", "Thank you for applying. Our HR team will evaluate your profile.");
         reset();
         if (onSuccess) onSuccess();
       } else {
         setSubmitState("error");
-        setErrorMessage(
-          response.error || "There was an issue processing your application. Please check form."
-        );
+        const msg = response.error || "There was an issue processing your application. Please check form.";
+        setErrorMessage(msg);
+        toast.error("Application Submission Failed", msg);
       }
     } catch (err) {
       setSubmitState("error");
       setErrorMessage("An unexpected error occurred. Please try again.");
+      toast.error("Application Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,102 +1,135 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { create } from 'zustand';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, Info, X } from 'lucide-react';
-import { clsx } from 'clsx';
+import React from "react";
+import { toast as reactToast, ToastContainer as ReactToastifyContainer, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { CheckCircle2, AlertTriangle, Info, Trash2, Check } from "lucide-react";
 
-export type ToastType = 'success' | 'error' | 'info';
-
-export interface ToastMessage {
-  id: string;
-  type: ToastType;
-  title: string;
-  message?: string;
-  duration?: number;
-}
-
-interface ToastStore {
-  toasts: ToastMessage[];
-  addToast: (toast: Omit<ToastMessage, 'id'>) => void;
-  removeToast: (id: string) => void;
-}
-
-export const useToastStore = create<ToastStore>((set) => ({
-  toasts: [],
-  addToast: (toast) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
-  },
-  removeToast: (id) =>
-    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
-}));
+export type ToastType = "success" | "error" | "info" | "warning" | "delete";
 
 export function ToastContainer() {
-  const { toasts, removeToast } = useToastStore();
-
   return (
-    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
-      <AnimatePresence>
-        {toasts.map((toast) => (
-          <ToastItem key={toast.id} toast={toast} onRemove={() => removeToast(toast.id)} />
-        ))}
-      </AnimatePresence>
+    <ReactToastifyContainer
+      position="top-right"
+      autoClose={4000}
+      hideProgressBar={false}
+      newestOnTop={true}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+      transition={Bounce}
+      toastClassName={() =>
+        "relative flex p-4 min-h-16 rounded-xl justify-between overflow-hidden cursor-pointer bg-white/95 backdrop-blur-md border border-gray-100 shadow-xl mb-3 transition-all duration-300 hover:scale-[1.02] font-sans"
+      }
+      style={{ width: "100%", maxWidth: "420px", zIndex: 99999 }}
+    />
+  );
+}
+
+const CustomToastContent = ({
+  title,
+  message,
+  icon,
+  borderClass,
+  iconBgClass,
+}: {
+  title: string;
+  message?: string;
+  icon: React.ReactNode;
+  borderClass: string;
+  iconBgClass: string;
+}) => (
+  <div className={`flex items-start gap-3 w-full border-l-4 ${borderClass} pl-2 py-0.5`}>
+    <div className={`p-2 rounded-full ${iconBgClass} shrink-0 mt-0.5 shadow-sm`}>
+      {icon}
     </div>
-  );
-}
-
-function ToastItem({ toast, onRemove }: { toast: ToastMessage; onRemove: () => void }) {
-  useEffect(() => {
-    const duration = toast.duration || 5000;
-    const timer = setTimeout(onRemove, duration);
-    return () => clearTimeout(timer);
-  }, [toast, onRemove]);
-
-  const icons = {
-    success: <CheckCircle className="h-5 w-5 text-green-500" />,
-    error: <XCircle className="h-5 w-5 text-red-500" />,
-    info: <Info className="h-5 w-5 text-blue-500" />
-  };
-
-  const bgClasses = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
-  };
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 50, scale: 0.3 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-      className={clsx(
-        'pointer-events-auto flex w-80 items-start gap-3 rounded-lg border p-4 shadow-lg',
-        bgClasses[toast.type]
+    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+      <h4 className="text-sm font-bold text-gray-900 leading-snug tracking-tight font-serif">
+        {title}
+      </h4>
+      {message && (
+        <p className="text-xs font-normal text-gray-600 leading-relaxed font-sans line-clamp-2">
+          {message}
+        </p>
       )}
-    >
-      <div className="flex-shrink-0 mt-0.5">{icons[toast.type]}</div>
-      <div className="flex-1">
-        <h4 className="text-sm font-semibold text-gray-900">{toast.title}</h4>
-        {toast.message && <p className="mt-1 text-sm text-gray-600">{toast.message}</p>}
-      </div>
-      <button
-        onClick={onRemove}
-        className="flex-shrink-0 rounded-md p-1 hover:bg-black/5 transition-colors"
-      >
-        <X className="h-4 w-4 text-gray-500" />
-      </button>
-    </motion.div>
-  );
-}
+    </div>
+  </div>
+);
 
 export function useToast() {
-  const addToast = useToastStore(state => state.addToast);
-  
   return {
-    success: (title: string, message?: string, duration?: number) => addToast({ type: 'success', title, message, duration }),
-    error: (title: string, message?: string, duration?: number) => addToast({ type: 'error', title, message, duration }),
-    info: (title: string, message?: string, duration?: number) => addToast({ type: 'info', title, message, duration })
+    success: (title: string, message?: string) => {
+      reactToast(
+        <CustomToastContent
+          title={title}
+          message={message}
+          icon={<CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+          borderClass="border-emerald-500"
+          iconBgClass="bg-emerald-50"
+        />,
+        {
+          progressClassName: "bg-emerald-500",
+        }
+      );
+    },
+    error: (title: string, message?: string) => {
+      reactToast(
+        <CustomToastContent
+          title={title}
+          message={message}
+          icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+          borderClass="border-rose-500"
+          iconBgClass="bg-rose-50"
+        />,
+        {
+          progressClassName: "bg-rose-500",
+        }
+      );
+    },
+    info: (title: string, message?: string) => {
+      reactToast(
+        <CustomToastContent
+          title={title}
+          message={message}
+          icon={<Info className="w-5 h-5 text-sky-600" />}
+          borderClass="border-sky-500"
+          iconBgClass="bg-sky-50"
+        />,
+        {
+          progressClassName: "bg-sky-500",
+        }
+      );
+    },
+    warning: (title: string, message?: string) => {
+      reactToast(
+        <CustomToastContent
+          title={title}
+          message={message}
+          icon={<AlertTriangle className="w-5 h-5 text-amber-600" />}
+          borderClass="border-amber-500"
+          iconBgClass="bg-amber-50"
+        />,
+        {
+          progressClassName: "bg-amber-500",
+        }
+      );
+    },
+    delete: (title: string, message?: string) => {
+      reactToast(
+        <CustomToastContent
+          title={title}
+          message={message}
+          icon={<Trash2 className="w-5 h-5 text-red-600" />}
+          borderClass="border-red-600"
+          iconBgClass="bg-red-50"
+        />,
+        {
+          progressClassName: "bg-red-600",
+        }
+      );
+    },
   };
 }

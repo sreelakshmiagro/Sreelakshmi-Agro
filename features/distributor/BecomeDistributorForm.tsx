@@ -11,6 +11,7 @@ import FormInput from "@/components/common/FormInput";
 import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
 import { ALL_INDIAN_STATES, getDistrictsForState } from "@/lib/indiaData";
+import { useToast } from "@/components/admin/ui/Toast";
 
 const defaultBusinessTypes = [
   { label: "Wholesaler / Trader", value: "Wholesaler" },
@@ -123,6 +124,8 @@ export default function BecomeDistributorForm({ formConfig: propFormConfig }: { 
     setValue("district", ""); // Reset district when state changes
   };
 
+  const toast = useToast();
+
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     setErrorMessage("");
@@ -131,16 +134,18 @@ export default function BecomeDistributorForm({ formConfig: propFormConfig }: { 
       const response = await submitDistributorInquiry(data);
       if (response.success) {
         setSubmitState("success");
+        toast.success("Inquiry Submitted Successfully!", "Our business development team will contact you within 24–48 hours.");
         reset();
       } else {
         setSubmitState("error");
-        setErrorMessage(
-          response.error || "There was a validation issue. Please check fields."
-        );
+        const msg = response.error || "There was a validation issue. Please check fields.";
+        setErrorMessage(msg);
+        toast.error("Submission Failed", msg);
       }
     } catch (err) {
       setSubmitState("error");
       setErrorMessage("An unexpected error occurred. Please try again.");
+      toast.error("Submission Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
