@@ -25,6 +25,16 @@ export async function getRecipe(id: string) {
   return data;
 }
 
+export async function getProductOptions() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, name, slug')
+    .order('name', { ascending: true });
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
 export async function createRecipe(formData: any) {
   const supabase = await createClient();
   const { error } = await supabase.from('recipes').insert([formData]);

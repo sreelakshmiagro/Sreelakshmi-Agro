@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getPublishedRecipes } from "@/lib/data";
 import RecipesShowcase from "@/features/recipes/RecipesShowcase";
 
@@ -12,5 +13,9 @@ export const metadata: Metadata = {
 
 export default async function RecipesPage() {
   const recipes = await getPublishedRecipes();
-  return <RecipesShowcase recipesData={recipes} />;
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-text-secondary">Loading recipes...</div>}>
+      <RecipesShowcase recipesData={recipes} />
+    </Suspense>
+  );
 }

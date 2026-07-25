@@ -25,13 +25,19 @@ export async function getProductBySlug(slug: string) {
 }
 
 // ─── Recipes ────────────────────────────────────────────
-export async function getPublishedRecipes() {
+export async function getPublishedRecipes(productSlug?: string) {
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("recipes")
     .select("*")
     .eq("status", "published")
     .order("sort_order", { ascending: true });
+
+  if (productSlug) {
+    query = query.eq("related_product_slug", productSlug);
+  }
+
+  const { data } = await query;
   return data || [];
 }
 

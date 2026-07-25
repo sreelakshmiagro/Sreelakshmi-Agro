@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, Clock, ChefHat } from "lucide-react";
 
-const recipes = [
+const defaultRecipes = [
   {
     title: "Classic Samba Wheat Upma",
-    time: "20 Mins",
+    time: "5 Mins + 20 Mins",
     difficulty: "Easy",
     image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80",
     ingredients: [
@@ -20,10 +21,11 @@ const recipes = [
     ],
     instructions:
       "Dry roast wheat grit for 3 minutes. Sauté spices and vegetables in oil or ghee. Add hot water, bring to boil, add wheat, cover, and simmer for 10 minutes until water is absorbed.",
+    relatedProductSlug: "samba-broken-wheat",
   },
   {
     title: "Healthy Wheat Porridge",
-    time: "15 Mins",
+    time: "5 Mins + 15 Mins",
     difficulty: "Easy",
     image: "https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=600&q=80",
     ingredients: [
@@ -34,36 +36,50 @@ const recipes = [
     ],
     instructions:
       "Pressure cook wheat grit with 1.5 cups water for 3 whistles. Whisk in hot milk and sweetener. Simmer for 3 minutes, garnish with crushed nuts, and serve warm.",
-  },
-  {
-    title: "Samba Vegetable Khichdi",
-    time: "25 Mins",
-    difficulty: "Medium",
-    image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80",
-    ingredients: [
-      "1 cup Samba Broken Wheat",
-      "1/2 cup moong dal",
-      "Assorted vegetables",
-      "Ghee, cumin, turmeric, ginger",
-    ],
-    instructions:
-      "Sauté ginger, cumin, and chopped vegetables in ghee. Add washed wheat grit and moong dal. Pour 4 cups water, add turmeric/salt, and pressure cook for 4 whistles.",
+    relatedProductSlug: "samba-broken-wheat",
   },
 ];
 
 export default function RecipesShowcase({ recipesData = [] }: { recipesData?: any[] }) {
+  const searchParams = useSearchParams();
+  const productFilter = searchParams ? searchParams.get("product") : null;
+
   const displayRecipes = recipesData && recipesData.length > 0
     ? recipesData.map(r => ({
+        id: r.id,
         title: r.name,
-        time: `${r.prep_time} + ${r.cook_time}`,
-        difficulty: r.difficulty,
-        image: r.featured_image,
-        ingredients: r.ingredients || [],
-        instructions: r.steps
+        time: r.cook_time ? `${r.prep_time || '5 Mins'} + ${r.cook_time}` : (r.prep_time || '20 Mins'),
+        difficulty: r.difficulty || 'Easy',
+        image: r.featured_image || 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
+        ingredients: Array.isArray(r.ingredients) ? r.ingredients : [],
+        instructions: typeof r.steps === 'string' ? r.steps : (Array.isArray(r.steps) ? r.steps.join('\n\n') : ''),
+        relatedProductSlug: r.related_product_slug
       }))
-    : recipes;
+    : defaultRecipes;
 
   const [activeRecipe, setActiveRecipe] = useState(0);
+
+  // Auto-select recipe related to product when coming from product detail page Explore Recipes button
+  useEffect(() => {
+    if (productFilter && displayRecipes.length > 0) {
+      const foundIdx = displayRecipes.findIndex(
+        (rcp) => rcp.relatedProductSlug === productFilter
+      );
+      if (foundIdx !== -1) {
+        setActiveRecipe(foundIdx);
+      }
+    }
+  }, [productFilter, displayRecipes]);
+
+  if (displayRecipes.length === 0) {
+    return (
+      <div className="bg-bg-secondary min-h-screen py-20 text-center">
+        <h2 className="font-serif text-2xl text-text-primary">No recipes available.</h2>
+      </div>
+    );
+  }
+
+  const currentRecipe = displayRecipes[activeRecipe] || displayRecipes[0];
 
   return (
     <div className="bg-bg-secondary min-h-screen pb-20">
@@ -110,12 +126,13 @@ export default function RecipesShowcase({ recipesData = [] }: { recipesData?: an
           <div className="lg:col-span-8 bg-white p-6 md:p-8 rounded-2xl border border-border-light shadow-sm flex flex-col md:flex-row gap-6 text-left">
             
             {/* Recipe Dish Image */}
-            <div className="relative w-full md:w-64 h-56 md:h-auto rounded-xl overflow-hidden shrink-0 border border-border-light shadow-sm bg-bg-secondary">
+            <div className="relative w-full md:w-64 h-56 md:h-auto min-h-[220px] rounded-xl overflow-hidden shrink-0 border border-border-light shadow-sm bg-bg-secondary">
               <Image
-                src={displayRecipes[activeRecipe].image}
-                alt={displayRecipes[activeRecipe].title}
+                src={currentRecipe.image}
+                alt={currentRecipe.title}
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-105"
+                unoptimized
               />
             </div>
 
@@ -123,34 +140,38 @@ export default function RecipesShowcase({ recipesData = [] }: { recipesData?: an
             <div className="flex flex-col gap-4 flex-grow min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border-light pb-3 gap-2">
                 <h2 className="font-serif text-2xl font-bold text-text-primary">
-                  {displayRecipes[activeRecipe].title}
+                  {currentRecipe.title}
                 </h2>
                 <div className="flex items-center gap-4 text-xs font-sans text-text-secondary shrink-0">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-brand-primary" />
-                    <strong>{displayRecipes[activeRecipe].time}</strong>
+                    <strong>{currentRecipe.time}</strong>
                   </span>
                   <span className="flex items-center gap-1">
                     <ChefHat className="w-3.5 h-3.5 text-brand-primary" />
-                    <strong>{displayRecipes[activeRecipe].difficulty}</strong>
+                    <strong>{currentRecipe.difficulty}</strong>
                   </span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-4 font-sans text-sm text-text-secondary">
-                <div className="flex flex-col gap-2">
-                  <h3 className="font-serif text-sm font-bold text-text-primary">Ingredients:</h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 list-disc list-inside">
-                    {displayRecipes[activeRecipe].ingredients.map((ing: string, k: number) => (
-                      <li key={k}>{ing}</li>
-                    ))}
-                  </ul>
-                </div>
+                {currentRecipe.ingredients && currentRecipe.ingredients.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <h3 className="font-serif text-sm font-bold text-text-primary">Ingredients:</h3>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 list-disc list-inside">
+                      {currentRecipe.ingredients.map((ing: string, k: number) => (
+                        <li key={k}>{ing}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-                <div className="flex flex-col gap-2 border-t border-border-light/60 pt-4 mt-1">
-                  <h3 className="font-serif text-sm font-bold text-text-primary">Preparation Steps:</h3>
-                  <p className="leading-relaxed text-text-secondary">{displayRecipes[activeRecipe].instructions}</p>
-                </div>
+                {currentRecipe.instructions && (
+                  <div className="flex flex-col gap-2 border-t border-border-light/60 pt-4 mt-1">
+                    <h3 className="font-serif text-sm font-bold text-text-primary">Preparation Steps:</h3>
+                    <p className="leading-relaxed text-text-secondary whitespace-pre-line">{currentRecipe.instructions}</p>
+                  </div>
+                )}
               </div>
             </div>
 

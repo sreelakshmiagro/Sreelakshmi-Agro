@@ -230,7 +230,7 @@ export default function ProductDetail({ product }: { product?: any }) {
               </div>
             </div>
             <Link
-              href="/recipes"
+              href={`/recipes?product=${displayProduct.slug}`}
               className="bg-brand-primary hover:bg-brand-secondary text-white font-sans text-sm font-semibold px-7 py-3.5 rounded-lg shadow transition-all shrink-0 flex items-center gap-2"
             >
               <span>Explore Recipes</span>
