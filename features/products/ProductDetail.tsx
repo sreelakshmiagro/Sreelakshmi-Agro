@@ -54,32 +54,36 @@ export default function ProductDetail({ product }: { product?: any }) {
     name: "Samba Broken Wheat",
     category: "Wheat Grains",
     short_description: "Premium parboiled broken wheat grains rich in natural dietary fibers, iron, and proteins.",
-    long_description: `<p>Samba Broken Wheat is a wholesome and nutritious cereal made from carefully selected whole samba wheat grains that are cleaned and coarsely broken to retain their natural goodness. Rich in dietary fiber, protein, vitamins, and essential minerals, it offers a healthy alternative to refined grains. Owing to its whole grain nature and higher fiber content, Samba Broken Wheat generally has a lower glycemic response compared to refined cereals, helping in the gradual release of energy and supporting better blood sugar management as part of a balanced diet.</p>`,
+    long_description: `<p>Samba Broken Wheat is a wholesome and nutritious cereal made from carefully selected whole samba wheat grains that are cleaned and coarsely broken to retain their natural goodness. Rich in dietary fiber, protein, vitamins, and essential minerals, it offers a healthy alternative to refined grains.</p>`,
     hero_image: "/assets/samba_wheat.png",
     benefits: defaultBenefits,
     nutrition_table: defaultNutrition,
     faqs: defaultFaqs
   };
 
-  const productFaqs = Array.isArray(displayProduct.faqs) && displayProduct.faqs.length > 0
-    ? displayProduct.faqs.map((f: any) => ({
-        question: f.question || f.q || '',
-        answer: f.answer || f.a || ''
-      }))
-    : defaultFaqs.map((f: any) => ({ question: f.q, answer: f.a }));
+  // Only use defaults if the product object was completely absent; if product was provided, honor its actual lists (even if empty)
+  const productFaqs = Array.isArray(product?.faqs)
+    ? product.faqs.map((f: any) => ({ question: f.question || f.q || '', answer: f.answer || f.a || '' }))
+    : Array.isArray(displayProduct.faqs)
+      ? displayProduct.faqs.map((f: any) => ({ question: f.question || f.q || '', answer: f.answer || f.a || '' }))
+      : [];
 
-  const productBenefits = Array.isArray(displayProduct.benefits) && displayProduct.benefits.length > 0
-    ? displayProduct.benefits
-    : defaultBenefits;
+  const productBenefits = Array.isArray(product?.benefits)
+    ? product.benefits
+    : Array.isArray(displayProduct.benefits)
+      ? displayProduct.benefits
+      : [];
 
-  const nutritionTable = Array.isArray(displayProduct.nutrition_table) && displayProduct.nutrition_table.length > 0
-    ? displayProduct.nutrition_table
-    : defaultNutrition;
+  const nutritionTable = Array.isArray(product?.nutrition_table)
+    ? product.nutrition_table
+    : Array.isArray(displayProduct.nutrition_table)
+      ? displayProduct.nutrition_table
+      : [];
 
   return (
     <div className="bg-bg-secondary min-h-screen">
       
-      {/* SECTION 1: Overview & 3D Package Image */}
+      {/* SECTION 1: Overview & Product Hero Package Image */}
       <section className="py-16 bg-white border-b border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -152,44 +156,46 @@ export default function ProductDetail({ product }: { product?: any }) {
         </div>
       </section>
 
-      {/* SECTION 2: Health Benefits Cards */}
-      <section className="py-20 bg-white border-b border-border-light/60">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-          <div className="text-center max-w-3xl mx-auto flex flex-col gap-3 mb-16">
-            <span className="font-sans text-xs sm:text-sm font-bold text-brand-primary uppercase tracking-widest">
-              Nutritional Value
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-text-primary leading-tight">
-              Nutritional Benefits of {displayProduct.name}
-            </h2>
-            <p className="font-sans text-text-secondary text-base leading-relaxed max-w-xl mx-auto">
-              A nutrient-dense grain alternative that brings pure health and natural vitality back to your daily plate.
-            </p>
-          </div>
+      {/* SECTION 2: Health Benefits Cards (Optional - Rendered only if present) */}
+      {productBenefits.length > 0 && (
+        <section className="py-20 bg-white border-b border-border-light/60">
+          <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+            <div className="text-center max-w-3xl mx-auto flex flex-col gap-3 mb-16">
+              <span className="font-sans text-xs sm:text-sm font-bold text-brand-primary uppercase tracking-widest">
+                Nutritional Value
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl text-text-primary leading-tight">
+                Nutritional Benefits of {displayProduct.name}
+              </h2>
+              <p className="font-sans text-text-secondary text-base leading-relaxed max-w-xl mx-auto">
+                A nutrient-dense grain alternative that brings pure health and natural vitality back to your daily plate.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {productBenefits.map((item: any, index: number) => {
-              const Icon = item.icon || Activity;
-              return (
-                <div
-                  key={index}
-                  className="bg-bg-secondary p-6 rounded-xl border border-border-light flex flex-col gap-4 shadow-sm"
-                >
-                  <div className="p-3 bg-brand-primary/5 text-brand-primary rounded-lg w-max">
-                    <Icon className="w-5 h-5" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {productBenefits.map((item: any, index: number) => {
+                const Icon = item.icon || Activity;
+                return (
+                  <div
+                    key={index}
+                    className="bg-bg-secondary p-6 rounded-xl border border-border-light flex flex-col gap-4 shadow-sm"
+                  >
+                    <div className="p-3 bg-brand-primary/5 text-brand-primary rounded-lg w-max">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <h3 className="font-serif text-base font-bold text-text-primary">{item.title}</h3>
+                      <p className="font-sans text-xs sm:text-sm text-text-secondary leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <h3 className="font-serif text-base font-bold text-text-primary">{item.title}</h3>
-                    <p className="font-sans text-xs sm:text-sm text-text-secondary leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* SECTION 3: Nutrition Specs & Ingredients Table */}
+      {/* SECTION 3: Nutrition Specs Table (Optional - Rendered only if present) */}
       {nutritionTable.length > 0 && (
         <section className="py-16 bg-bg-secondary border-b border-border-light/60">
           <div className="max-w-[1280px] mx-auto px-4 md:px-8">
@@ -220,7 +226,7 @@ export default function ProductDetail({ product }: { product?: any }) {
               </div>
               <div className="flex flex-col gap-1">
                 <h3 className="font-serif text-2xl font-bold text-text-primary">Delicious {displayProduct.name} Recipes</h3>
-                <p className="font-sans text-sm text-text-secondary">Discover step-by-step cooking methods for Upma, Porridge, Khichdi, and healthy daily meals.</p>
+                <p className="font-sans text-sm text-text-secondary">Discover step-by-step cooking methods for healthy daily meals.</p>
               </div>
             </div>
             <Link
@@ -234,59 +240,61 @@ export default function ProductDetail({ product }: { product?: any }) {
         </div>
       </section>
 
-      {/* SECTION 5: Product FAQ Hub (Requirement 5 & 6) */}
-      <section className="py-20 bg-white border-b border-border-light/60">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            
-            <div className="lg:col-span-4 flex flex-col gap-4 text-left">
-              <span className="font-sans text-xs font-bold text-brand-primary uppercase tracking-widest">
-                Answers & Support
-              </span>
-              <h2 className="font-serif text-3xl text-text-primary leading-tight">
-                Product FAQ Hub
-              </h2>
-              <p className="font-sans text-sm text-text-secondary leading-relaxed">
-                Quick answers regarding dietary usage, celiac guidelines, cooking methods, and distributor allocations.
-              </p>
-            </div>
+      {/* SECTION 5: Product FAQ Hub (Optional - Rendered only if present) */}
+      {productFaqs.length > 0 && (
+        <section className="py-20 bg-white border-b border-border-light/60">
+          <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+              
+              <div className="lg:col-span-4 flex flex-col gap-4 text-left">
+                <span className="font-sans text-xs font-bold text-brand-primary uppercase tracking-widest">
+                  Answers & Support
+                </span>
+                <h2 className="font-serif text-3xl text-text-primary leading-tight">
+                  Product FAQ Hub
+                </h2>
+                <p className="font-sans text-sm text-text-secondary leading-relaxed">
+                  Quick answers regarding dietary usage, celiac guidelines, cooking methods, and distributor allocations.
+                </p>
+              </div>
 
-            <div className="lg:col-span-8 flex flex-col gap-4 w-full">
-              {productFaqs.map((faq: any, idx: number) => {
-                const isOpen = openFaq === idx;
-                return (
-                  <div key={idx} className="bg-bg-secondary rounded-lg border border-border-light overflow-hidden transition-all">
-                    <button
-                      onClick={() => setOpenFaq(isOpen ? null : idx)}
-                      className="w-full px-5 py-4 flex justify-between items-center text-left focus:outline-none"
-                    >
-                      <span className="font-serif text-base font-bold text-text-primary">{faq.question}</span>
-                      <div className="p-1 rounded-full bg-white text-text-secondary">
-                        {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                      </div>
-                    </button>
-                    
-                    <AnimatePresence>
-                      {isOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="px-5 pb-5 pt-1 font-sans text-sm text-text-secondary border-t border-border-light/50 leading-relaxed"
-                        >
-                          {faq.answer}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
-            </div>
+              <div className="lg:col-span-8 flex flex-col gap-4 w-full">
+                {productFaqs.map((faq: any, idx: number) => {
+                  const isOpen = openFaq === idx;
+                  return (
+                    <div key={idx} className="bg-bg-secondary rounded-lg border border-border-light overflow-hidden transition-all">
+                      <button
+                        onClick={() => setOpenFaq(isOpen ? null : idx)}
+                        className="w-full px-5 py-4 flex justify-between items-center text-left focus:outline-none"
+                      >
+                        <span className="font-serif text-base font-bold text-text-primary">{faq.question}</span>
+                        <div className="p-1 rounded-full bg-white text-text-secondary">
+                          {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        </div>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="px-5 pb-5 pt-1 font-sans text-sm text-text-secondary border-t border-border-light/50 leading-relaxed"
+                          >
+                            {faq.answer}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
 
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* SECTION 6: Partner CTA */}
       <section className="py-20 bg-brand-primary text-white text-center relative overflow-hidden">

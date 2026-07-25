@@ -56,3 +56,33 @@ export async function deleteProducts(ids: string[]) {
   revalidatePath('/admin/products');
   return { success: true };
 }
+
+export async function uploadProductMedia(formData: FormData) {
+  const file = formData.get('file') as File;
+  if (!file) throw new Error('No file provided');
+
+  const supabase = await createClient();
+  const fileExt = file.name.split('.').pop() || 'png';
+  const fileName = `products/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+  
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const { error: uploadError } = await supabase.storage
+    .from('media')
+    .upload(fileName, buffer, {
+      contentType: file.type,
+      upsert: true,
+    });
+
+  if (uploadError) {
+    // If RLS policy check fails on storage, try fallback upload or return clear error
+    throw new Error(uploadError.message);
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from('media')
+    .getPublicUrl(fileName);
+
+  return { publicUrl: publicUrlData.publicUrl };
+}

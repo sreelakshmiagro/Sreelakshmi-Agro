@@ -2,8 +2,8 @@
 
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Upload, X, Check, Image as ImageIcon } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { uploadProductMedia } from '@/app/(admin)/admin/actions/products';
 
 interface ImageUploaderProps {
   label: string;
@@ -12,6 +12,7 @@ interface ImageUploaderProps {
   altText?: string;
   onAltTextChange?: (alt: string) => void;
   placeholder?: string;
+  isOptional?: boolean;
 }
 
 export function ImageUploader({
@@ -21,6 +22,7 @@ export function ImageUploader({
   altText = '',
   onAltTextChange,
   placeholder = 'Drag & drop image here or click to browse',
+  isOptional = false,
 }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -37,24 +39,17 @@ export function ImageUploader({
     setError('');
 
     try {
-      const supabase = createClient();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const { error: uploadError } = await supabase.storage
-        .from('media')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = supabase.storage
-        .from('media')
-        .getPublicUrl(filePath);
-
-      onChange(publicUrlData.publicUrl);
+      const res = await uploadProductMedia(formData);
+      if (res && res.publicUrl) {
+        onChange(res.publicUrl);
+      } else {
+        throw new Error('Failed to retrieve public URL');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to upload image');
+      setError(err.message || 'Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -82,10 +77,14 @@ export function ImageUploader({
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+          {label} {isOptional && <span className="text-gray-400 font-normal lowercase">(optional)</span>}
+        </label>
+      </div>
 
       {value ? (
-        <div className="relative border border-border-light rounded-lg p-3 bg-bg-secondary flex flex-col sm:flex-row items-center gap-4">
+        <div className="relative border border-border-light rounded-lg p-3 bg-gray-50 flex flex-col sm:flex-row items-center gap-4">
           <div className="relative w-24 h-24 rounded-md overflow-hidden bg-white border border-gray-200 shrink-0">
             <Image src={value} alt={altText || 'Preview'} fill className="object-contain p-1" />
           </div>
@@ -156,7 +155,7 @@ export function ImageUploader({
         <div className="flex items-center gap-2 pt-1">
           <input
             type="text"
-            placeholder="Or enter image URL (https://...)"
+            placeholder="Or paste external image URL (https://...)"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();

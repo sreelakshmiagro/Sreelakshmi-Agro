@@ -7,7 +7,7 @@ import { createProduct, updateProduct, getProduct, deleteProduct } from '@/app/(
 import { useToast } from '@/components/admin/ui/Toast';
 import { ConfirmDialog } from '@/components/admin/ui/ConfirmDialog';
 import { ImageUploader } from '@/components/admin/ui/ImageUploader';
-import { Save, Trash2, ArrowLeft, Plus, X, Layers, Image as ImageIcon, HelpCircle, FileText, Sparkles, Activity } from 'lucide-react';
+import { Save, Trash2, ArrowLeft, Plus, X, Layers, Image as ImageIcon, HelpCircle, Sparkles, Activity, Wand2 } from 'lucide-react';
 
 const CATEGORY_OPTIONS = [
   'Wheat Grains',
@@ -57,21 +57,9 @@ export function ProductForm({ productId }: { productId?: string }) {
     og_image: '',
   });
 
-  const [faqs, setFaqs] = useState<FAQItem[]>([
-    { q: 'Is Samba Broken Wheat gluten-free?', a: 'No. Since it is processed from whole wheat grains, it contains natural gluten.' },
-    { q: 'What is the shelf life of this package?', a: 'Samba Broken Wheat has a natural shelf life of 6 months.' }
-  ]);
-
-  const [benefits, setBenefits] = useState<BenefitItem[]>([
-    { title: 'High in Fiber, Vitamins & Minerals', desc: 'Contains rich natural density of dietary bran fibers.' },
-    { title: 'Lower Glycemic Index', desc: 'Ideal for diabetes patients, promoting gradual energy release.' }
-  ]);
-
-  const [nutritionTable, setNutritionTable] = useState<NutritionItem[]>([
-    { name: 'Energy / Calories', value: '342 Kcal' },
-    { name: 'Dietary Fibre', value: '11.2 g' },
-    { name: 'Proteins', value: '12.5 g' },
-  ]);
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [benefits, setBenefits] = useState<BenefitItem[]>([]);
+  const [nutritionTable, setNutritionTable] = useState<NutritionItem[]>([]);
 
   useEffect(() => {
     if (productId) {
@@ -125,9 +113,31 @@ export function ProductForm({ productId }: { productId?: string }) {
     setFormData((prev) => ({
       ...prev,
       name,
-      // Auto-fill slug if adding new product or if slug matches prior generated name
       slug: !productId || !prev.slug ? generatedSlug : prev.slug,
+      // Auto generate SEO title if blank
+      seo_title: prev.seo_title ? prev.seo_title : `${name} | Sreelakshmi Agro`,
     }));
+  };
+
+  // Requirement 1: Auto-generate SEO metadata based on Name & Description
+  const handleAutoGenerateSEO = () => {
+    if (!formData.name) {
+      toast.error('Please enter a product name first');
+      return;
+    }
+
+    const autoTitle = `${formData.name} | Sreelakshmi Agro Industries`;
+    const autoDesc = formData.short_description || `Discover premium ${formData.name} processed by Sreelakshmi Agro Industries. High quality, pure nutrition, and traditional trust.`;
+    const autoKeywords = `${formData.name}, ${formData.category}, healthy wheat products, agro processing, Sreelakshmi Agro`;
+
+    setFormData((prev) => ({
+      ...prev,
+      seo_title: autoTitle,
+      seo_description: autoDesc,
+      seo_keywords: autoKeywords,
+    }));
+
+    toast.success('SEO Metadata generated automatically!');
   };
 
   const handleAddFaq = () => {
@@ -158,8 +168,16 @@ export function ProductForm({ productId }: { productId?: string }) {
     e.preventDefault();
     setLoading(true);
 
+    // Auto-fill SEO metadata if user left it blank
+    const autoSeoTitle = formData.seo_title || `${formData.name} | Sreelakshmi Agro`;
+    const autoSeoDesc = formData.seo_description || formData.short_description || `Buy ${formData.name} from Sreelakshmi Agro.`;
+    const autoSeoKw = formData.seo_keywords || `${formData.name}, ${formData.category}, Sreelakshmi Agro`;
+
     const payload = {
       ...formData,
+      seo_title: autoSeoTitle,
+      seo_description: autoSeoDesc,
+      seo_keywords: autoSeoKw,
       faqs: faqs.filter((f) => f.q.trim() && f.a.trim()),
       benefits: benefits.filter((b) => b.title.trim()),
       nutrition_table: nutritionTable.filter((n) => n.name.trim() && n.value.trim()),
@@ -221,8 +239,8 @@ export function ProductForm({ productId }: { productId?: string }) {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-2">
         <button
           type="button"
           onClick={() => setActiveTab('basic')}
@@ -248,7 +266,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             activeTab === 'details' ? 'bg-brand-primary text-white' : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
-          <Activity className="w-4 h-4" /> Benefits & Nutrition
+          <Activity className="w-4 h-4" /> Benefits & Nutrition (Optional)
         </button>
         <button
           type="button"
@@ -306,17 +324,15 @@ export function ProductForm({ productId }: { productId?: string }) {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Product Category *</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-                  >
-                    {CATEGORY_OPTIONS.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                >
+                  {CATEGORY_OPTIONS.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -343,7 +359,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Detailed Description (HTML supported)</label>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Detailed Story & Description (HTML supported)</label>
               <textarea
                 value={formData.long_description}
                 onChange={(e) => setFormData({ ...formData, long_description: e.target.value })}
@@ -405,24 +421,28 @@ export function ProductForm({ productId }: { productId?: string }) {
             />
 
             <div className="pt-4 border-t border-gray-100">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">OG / Social Sharing Image</label>
               <ImageUploader
                 label="Social Share Image (OG)"
+                isOptional={true}
                 value={formData.og_image}
                 onChange={(url) => setFormData({ ...formData, og_image: url })}
-                placeholder="Upload preview image for WhatsApp / Facebook sharing"
+                placeholder="Upload optional preview image for WhatsApp / Facebook sharing"
               />
             </div>
           </div>
         )}
 
-        {/* TAB 3: HEALTH BENEFITS & NUTRITION TABLE */}
+        {/* TAB 3: OPTIONAL HEALTH BENEFITS & NUTRITION TABLE */}
         {activeTab === 'details' && (
           <div className="space-y-8">
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-800">
+              <strong>Note:</strong> Health Benefits and Nutrition Table rows are completely <strong>optional</strong>. If left empty, these sections will not be shown on the product detail page.
+            </div>
+
             {/* Health Benefits Repeater */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Health Benefits Cards</h3>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Health Benefits Cards (Optional)</h3>
                 <button
                   type="button"
                   onClick={handleAddBenefit}
@@ -470,7 +490,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             {/* Nutrition Table Repeater */}
             <div className="space-y-4 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Nutrition Specs</h3>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Nutritional Facts (Optional)</h3>
                 <button
                   type="button"
                   onClick={handleAddNutrition}
@@ -517,12 +537,12 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
         )}
 
-        {/* TAB 4: PRODUCT FAQS (REQUIREMENT 5 & 6) */}
+        {/* TAB 4: PRODUCT FAQS */}
         {activeTab === 'faqs' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Product FAQ Hub Items</h3>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Product FAQ Hub Items (Optional)</h3>
                 <p className="text-xs text-gray-500">Add individual FAQs displayed in the Product FAQ Hub section</p>
               </div>
               <button
@@ -581,9 +601,23 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
         )}
 
-        {/* TAB 5: SEO METADATA */}
+        {/* TAB 5: AUTOMATIC SEO METADATA (REQUIREMENT 1) */}
         {activeTab === 'seo' && (
           <div className="space-y-6">
+            <div className="flex items-center justify-between bg-brand-primary/5 p-4 rounded-lg border border-brand-primary/10">
+              <div>
+                <h4 className="text-xs font-bold text-brand-primary uppercase">Automatic SEO Generator</h4>
+                <p className="text-xs text-gray-600 mt-0.5">Click to automatically generate SEO Title, Description, and Keywords based on Product Name & Summary</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAutoGenerateSEO}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary/90 transition-colors shadow-sm shrink-0"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-brand-gold" /> Auto-Generate SEO
+              </button>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">SEO Title</label>
               <input
