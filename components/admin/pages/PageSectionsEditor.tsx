@@ -137,12 +137,61 @@ export function PageSectionsEditor({ pageSlug, initialSections }: { pageSlug: st
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Description (Rich HTML Supported)</label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = section.description || '';
+                        handleChange(index, 'description', `${val}<strong>Bold Text</strong>`);
+                      }}
+                      className="px-2 py-0.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300"
+                      title="Insert Bold Text"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = section.description || '';
+                        handleChange(index, 'description', `${val}<h3>Subheading</h3>\n`);
+                      }}
+                      className="px-2 py-0.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300"
+                      title="Insert Subheading"
+                    >
+                      H3
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = section.description || '';
+                        handleChange(index, 'description', `${val}<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>\n`);
+                      }}
+                      className="px-2 py-0.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300"
+                      title="Insert Bulleted List"
+                    >
+                      • List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = section.description || '';
+                        handleChange(index, 'description', `${val}<p>Paragraph text here...</p>\n`);
+                      }}
+                      className="px-2 py-0.5 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300"
+                      title="Insert Paragraph"
+                    >
+                      ¶ Para
+                    </button>
+                  </div>
+                </div>
                 <textarea
                   value={section.description || ''}
                   onChange={(e) => handleChange(index, 'description', e.target.value)}
-                  rows={4}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary"
+                  rows={5}
+                  placeholder="Enter content text... (Supports rich HTML formatting like <p>, <h2>, <ul>, <strong>, <a>)"
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 font-sans text-sm focus:outline-none focus:ring-brand-primary"
                 />
               </div>
               

@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 const SEEDED_PAGES = [
-  'home', 'about', 'products', 'recipes', 'contact', 'careers', 'become-distributor'
+  'home', 'about', 'products', 'recipes', 'contact', 'careers', 'become-distributor', 'privacy-policy', 'terms-of-use'
 ];
 
 export default async function PagesIndex() {

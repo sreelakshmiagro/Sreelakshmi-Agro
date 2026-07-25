@@ -120,3 +120,15 @@ export async function getMenuItems(location: string) {
     .order("sort_order", { ascending: true });
   return data || [];
 }
+
+// ─── Page Sections ──────────────────────────────────────
+export async function getPageSections(pageSlug: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("page_sections")
+    .select("*")
+    .eq("page_slug", pageSlug)
+    .eq("status", "active")
+    .order("sort_order", { ascending: true });
+  return data || [];
+}
