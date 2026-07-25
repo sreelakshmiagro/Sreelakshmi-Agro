@@ -3,14 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, notFound } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Minus, Flame, Activity, ShieldCheck, Apple, ArrowRight, ChefHat } from "lucide-react";
 import { useDistributorModal } from "@/store/useDistributorModal";
 
-const allowedSlugs = ["samba-broken-wheat"];
-
-const healthBenefits = [
+const defaultBenefits = [
   {
     icon: Activity,
     title: "High in Fiber, Vitamins & Minerals",
@@ -33,7 +30,7 @@ const healthBenefits = [
   },
 ];
 
-const nutritionData = [
+const defaultNutrition = [
   { name: "Energy / Calories", value: "342 Kcal" },
   { name: "Dietary Fibre", value: "11.2 g" },
   { name: "Proteins", value: "12.5 g" },
@@ -43,7 +40,7 @@ const nutritionData = [
   { name: "Fats", value: "1.2 g" },
 ];
 
-const faqs = [
+const defaultFaqs = [
   { q: "Is Samba Broken Wheat gluten-free?", a: "No. Since it is processed from whole wheat grains, it contains natural gluten. It is not suitable for individuals with Celiac disease or gluten allergies." },
   { q: "What is the shelf life of this package?", a: "Samba Broken Wheat has a natural shelf life of 6 months. To maintain freshness, store in an airtight container in a cool, dry place after opening." },
   { q: "Can I prepare diabetic meals using broken wheat?", a: "Yes. Due to its high bran fiber content and low glycemic index (GI), it releases sugar slowly into the bloodstream, making it highly recommended for diabetic diets." },
@@ -55,25 +52,42 @@ export default function ProductDetail({ product }: { product?: any }) {
 
   const displayProduct = product || {
     name: "Samba Broken Wheat",
-    long_description: `<p>Samba Broken Wheat is a wholesome and nutritious cereal made from carefully selected whole samba wheat grains that are cleaned and coarsely broken to retain their natural goodness. Rich in dietary fiber, protein, vitamins, and essential minerals, it offers a healthy alternative to refined grains. Owing to its whole grain nature and higher fiber content, Samba Broken Wheat generally has a lower glycemic response compared to refined cereals, helping in the gradual release of energy and supporting better blood sugar management as part of a balanced diet. Its slightly nutty flavor and chewy texture make it ideal for preparing a variety of dishes such as upma, porridge, khichdi, pulao, payasam(kheer) and desserts. Free from added preservatives and artificial ingredients, it is a nourishing choice for health-conscious consumers and the entire family.</p><p><strong>About the Main Ingredient (Samba Wheat):</strong> Popularly known as 'Samba' or 'Emmer', Khapli wheat is a long, versatile and nutritious variety of wheat which is mostly available in broken or cracked form. It is commonly used in Indian cuisine, to make a variety of dishes such as porridges, upma, soups, and sweet dishes like payasam (kheer).</p>`,
+    category: "Wheat Grains",
+    short_description: "Premium parboiled broken wheat grains rich in natural dietary fibers, iron, and proteins.",
+    long_description: `<p>Samba Broken Wheat is a wholesome and nutritious cereal made from carefully selected whole samba wheat grains that are cleaned and coarsely broken to retain their natural goodness. Rich in dietary fiber, protein, vitamins, and essential minerals, it offers a healthy alternative to refined grains. Owing to its whole grain nature and higher fiber content, Samba Broken Wheat generally has a lower glycemic response compared to refined cereals, helping in the gradual release of energy and supporting better blood sugar management as part of a balanced diet.</p>`,
     hero_image: "/assets/samba_wheat.png",
-    benefits: healthBenefits,
-    nutrition_table: nutritionData,
-    faqs: faqs
+    benefits: defaultBenefits,
+    nutrition_table: defaultNutrition,
+    faqs: defaultFaqs
   };
+
+  const productFaqs = Array.isArray(displayProduct.faqs) && displayProduct.faqs.length > 0
+    ? displayProduct.faqs.map((f: any) => ({
+        question: f.question || f.q || '',
+        answer: f.answer || f.a || ''
+      }))
+    : defaultFaqs.map((f: any) => ({ question: f.q, answer: f.a }));
+
+  const productBenefits = Array.isArray(displayProduct.benefits) && displayProduct.benefits.length > 0
+    ? displayProduct.benefits
+    : defaultBenefits;
+
+  const nutritionTable = Array.isArray(displayProduct.nutrition_table) && displayProduct.nutrition_table.length > 0
+    ? displayProduct.nutrition_table
+    : defaultNutrition;
 
   return (
     <div className="bg-bg-secondary min-h-screen">
       
-      {/* SECTION 2: Product Overview & Image */}
+      {/* SECTION 1: Overview & 3D Package Image */}
       <section className="py-16 bg-white border-b border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            {/* Left Column: Story text */}
+            {/* Left Column: Product Details & Story */}
             <div className="lg:col-span-7 flex flex-col gap-5 text-left">
               <span className="font-sans text-xs font-bold text-brand-primary uppercase tracking-widest bg-brand-primary/5 border border-brand-primary/10 px-3.5 py-1 rounded-full w-max">
-                Flagship Product
+                {displayProduct.category || "Wheat Grains"}
               </span>
               <h1 className="font-serif text-4xl sm:text-5xl text-text-primary leading-tight">
                 {displayProduct.name}
@@ -81,19 +95,26 @@ export default function ProductDetail({ product }: { product?: any }) {
               <h2 className="font-serif text-xl sm:text-2xl text-brand-primary leading-tight font-medium">
                 Purity You Can Trust, Value You Can Taste
               </h2>
-              <div 
-                className="font-sans text-text-secondary text-base leading-relaxed flex flex-col gap-4"
-                dangerouslySetInnerHTML={{ __html: displayProduct.long_description }}
-              />
+
+              {displayProduct.short_description && (
+                <p className="font-sans text-base text-text-primary font-medium leading-relaxed">
+                  {displayProduct.short_description}
+                </p>
+              )}
+
+              {displayProduct.long_description ? (
+                <div 
+                  className="font-sans text-text-secondary text-base leading-relaxed flex flex-col gap-4"
+                  dangerouslySetInnerHTML={{ __html: displayProduct.long_description }}
+                />
+              ) : null}
             </div>
 
-            {/* Right Column: 3D Standalone Product Image & Key facts */}
+            {/* Right Column: Standalone Product Hero Image */}
             <div className="lg:col-span-5 flex flex-col gap-6 items-center">
               <div className="relative w-full max-w-[340px] aspect-[4/5] flex items-center justify-center select-none py-2">
-                {/* 3D Soft Radial Glow */}
                 <div className="absolute inset-0 bg-radial-gradient from-brand-gold/25 via-brand-cream/30 to-transparent scale-125 pointer-events-none blur-2xl rounded-full" />
                 
-                {/* Standalone PNG with 3D Drop Shadow */}
                 <div className="relative w-full h-full drop-shadow-[0_25px_30px_rgba(0,0,0,0.22)] hover:drop-shadow-[0_32px_45px_rgba(126,26,37,0.32)] transition-all duration-500 hover:scale-[1.03]">
                   <Image
                     src={displayProduct.hero_image || "/assets/samba_wheat.png"}
@@ -111,8 +132,8 @@ export default function ProductDetail({ product }: { product?: any }) {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-serif text-sm font-bold text-text-primary">100% Whole Wheat</h3>
-                    <p className="font-sans text-xs text-text-secondary">Processed from pure harvests with zero polishing.</p>
+                    <h3 className="font-serif text-sm font-bold text-text-primary">100% Pure Harvest</h3>
+                    <p className="font-sans text-xs text-text-secondary">Selected raw materials with zero polish chemicals.</p>
                   </div>
                 </div>
                 <div className="p-4 bg-bg-secondary rounded-xl border border-border-light flex gap-3.5 items-center">
@@ -120,8 +141,8 @@ export default function ProductDetail({ product }: { product?: any }) {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-serif text-sm font-bold text-text-primary">Zero Chemical Bleach</h3>
-                    <p className="font-sans text-xs text-text-secondary">No artificial coatings, glosses, or preservatives added.</p>
+                    <h3 className="font-serif text-sm font-bold text-text-primary">Hygienic Seals</h3>
+                    <p className="font-sans text-xs text-text-secondary">Double-sealed packing to preserve natural freshness.</p>
                   </div>
                 </div>
               </div>
@@ -131,7 +152,7 @@ export default function ProductDetail({ product }: { product?: any }) {
         </div>
       </section>
 
-      {/* SECTION 3: Health Benefits Cards */}
+      {/* SECTION 2: Health Benefits Cards */}
       <section className="py-20 bg-white border-b border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="text-center max-w-3xl mx-auto flex flex-col gap-3 mb-16">
@@ -147,7 +168,7 @@ export default function ProductDetail({ product }: { product?: any }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {(displayProduct.benefits || healthBenefits).map((item: any, index: number) => {
+            {productBenefits.map((item: any, index: number) => {
               const Icon = item.icon || Activity;
               return (
                 <div
@@ -168,9 +189,28 @@ export default function ProductDetail({ product }: { product?: any }) {
         </div>
       </section>
 
-      {/* SECTION 5: Dedicated Recipes Teaser Link */}
+      {/* SECTION 3: Nutrition Specs & Ingredients Table */}
+      {nutritionTable.length > 0 && (
+        <section className="py-16 bg-bg-secondary border-b border-border-light/60">
+          <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+            <div className="max-w-2xl mx-auto bg-white rounded-2xl p-8 border border-border-light shadow-sm">
+              <h3 className="font-serif text-2xl font-bold text-text-primary text-center mb-6">
+                Nutritional Facts (Per 100g)
+              </h3>
+              <div className="divide-y divide-border-light">
+                {nutritionTable.map((nut: any, idx: number) => (
+                  <div key={idx} className="py-3 flex justify-between items-center text-sm font-sans">
+                    <span className="font-medium text-text-secondary">{nut.name}</span>
+                    <span className="font-bold text-text-primary">{nut.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
-      {/* SECTION 5: Dedicated Recipes Teaser Link */}
+      {/* SECTION 4: Dedicated Recipes Teaser Link */}
       <section className="py-16 bg-white border-b border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="bg-bg-secondary border border-border-light rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
@@ -179,7 +219,7 @@ export default function ProductDetail({ product }: { product?: any }) {
                 <ChefHat className="w-6 h-6" />
               </div>
               <div className="flex flex-col gap-1">
-                <h3 className="font-serif text-2xl font-bold text-text-primary">Delicious Samba Broken Wheat Recipes</h3>
+                <h3 className="font-serif text-2xl font-bold text-text-primary">Delicious {displayProduct.name} Recipes</h3>
                 <p className="font-sans text-sm text-text-secondary">Discover step-by-step cooking methods for Upma, Porridge, Khichdi, and healthy daily meals.</p>
               </div>
             </div>
@@ -194,31 +234,36 @@ export default function ProductDetail({ product }: { product?: any }) {
         </div>
       </section>
 
-      {/* SECTION 6: FAQs Accordion */}
+      {/* SECTION 5: Product FAQ Hub (Requirement 5 & 6) */}
       <section className="py-20 bg-white border-b border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
             <div className="lg:col-span-4 flex flex-col gap-4 text-left">
+              <span className="font-sans text-xs font-bold text-brand-primary uppercase tracking-widest">
+                Answers & Support
+              </span>
               <h2 className="font-serif text-3xl text-text-primary leading-tight">
                 Product FAQ Hub
               </h2>
               <p className="font-sans text-sm text-text-secondary leading-relaxed">
-                Quick answers regarding dietary usage, celiac guidelines, and regional distributor allocations.
+                Quick answers regarding dietary usage, celiac guidelines, cooking methods, and distributor allocations.
               </p>
             </div>
 
             <div className="lg:col-span-8 flex flex-col gap-4 w-full">
-              {(displayProduct.faqs || faqs).map((faq: any, idx: number) => {
+              {productFaqs.map((faq: any, idx: number) => {
                 const isOpen = openFaq === idx;
                 return (
-                  <div key={idx} className="bg-bg-secondary rounded-lg border border-border-light overflow-hidden">
+                  <div key={idx} className="bg-bg-secondary rounded-lg border border-border-light overflow-hidden transition-all">
                     <button
                       onClick={() => setOpenFaq(isOpen ? null : idx)}
                       className="w-full px-5 py-4 flex justify-between items-center text-left focus:outline-none"
                     >
-                      <span className="font-serif text-base font-bold text-text-primary">{faq.q}</span>
-                      <div>{isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}</div>
+                      <span className="font-serif text-base font-bold text-text-primary">{faq.question}</span>
+                      <div className="p-1 rounded-full bg-white text-text-secondary">
+                        {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      </div>
                     </button>
                     
                     <AnimatePresence>
@@ -228,9 +273,9 @@ export default function ProductDetail({ product }: { product?: any }) {
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="px-5 pb-5 pt-1 font-sans text-sm text-text-secondary border-t border-border-light/50"
+                          className="px-5 pb-5 pt-1 font-sans text-sm text-text-secondary border-t border-border-light/50 leading-relaxed"
                         >
-                          {faq.a}
+                          {faq.answer}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -243,7 +288,7 @@ export default function ProductDetail({ product }: { product?: any }) {
         </div>
       </section>
 
-      {/* SECTION 7: Partner CTA */}
+      {/* SECTION 6: Partner CTA */}
       <section className="py-20 bg-brand-primary text-white text-center relative overflow-hidden">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 relative z-10 flex flex-col items-center gap-6">
           <h2 className="font-serif text-3xl sm:text-4xl">Distribute {displayProduct.name}</h2>

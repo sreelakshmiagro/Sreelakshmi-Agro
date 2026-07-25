@@ -48,3 +48,11 @@ export async function deleteProduct(id: string) {
   revalidatePath('/admin/products');
   return { success: true };
 }
+
+export async function deleteProducts(ids: string[]) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('products').delete().in('id', ids);
+  if (error) throw new Error(error.message);
+  revalidatePath('/admin/products');
+  return { success: true };
+}
