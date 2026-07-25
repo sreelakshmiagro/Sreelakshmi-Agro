@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import ContactForm from "@/features/contact/ContactForm";
 import { Phone, Mail, MapPin, Clock, MessageSquare } from "lucide-react";
+import { getSiteSettings, getFormConfig } from "@/lib/data";
 
 const GoogleMap = dynamic(() => import("@/components/common/GoogleMap"), {
   loading: () => (
@@ -20,34 +21,44 @@ export const metadata: Metadata = {
   },
 };
 
-const contacts = [
-  {
-    icon: Phone,
-    title: "Call Us Today",
-    desc: "For general inquiries, distributor opportunities, and immediate support.",
-    actionText: "+91 9847997979",
-    href: "tel:+919847997979",
-  },
-  {
-    icon: Mail,
-    title: "Email Support",
-    desc: "Send us a detailed proposal or quality query. We read every email.",
-    actionText: "sreelakshmi7979@gmail.com",
-    href: "mailto:sreelakshmi7979@gmail.com",
-  },
-  {
-    icon: Clock,
-    title: "Working Hours",
-    desc: "We are available online and offline during these times.",
-    actionText: "Mon - Sat: 9:00 AM - 6:00 PM",
-    href: null,
-  },
-];
-
-import { getFormConfig } from "@/lib/data";
-
 export default async function ContactPage() {
-  const formConfig = await getFormConfig("form_contact_config");
+  const [siteSettings, formConfig] = await Promise.all([
+    getSiteSettings(),
+    getFormConfig("form_contact_config")
+  ]);
+
+  const phone = siteSettings.site_phone || "+91 9847997979";
+  const email = siteSettings.site_email || "sreelakshmi7979@gmail.com";
+  const hours = siteSettings.site_working_hours || "Mon - Sat: 9:00 AM - 6:00 PM";
+  const address = siteSettings.site_address || "Sreelakshmi Agro Industries, Methalapadam, Kodungallur, Thrissur District, Pin Code- 680 669, Kerala";
+  const whatsapp = siteSettings.site_whatsapp || "919847997979";
+
+  const heroTitle = siteSettings.contact_hero_title || "Contact Sreelakshmi Agro";
+  const heroSubtitle = siteSettings.contact_hero_subtitle || "Have questions about our Samba Broken Wheat, bulk pricing, or distributor applications? Our team is here to assist.";
+
+  const contacts = [
+    {
+      icon: Phone,
+      title: siteSettings.contact_call_title || "Call Us Today",
+      desc: siteSettings.contact_call_desc || "For general inquiries, distributor opportunities, and immediate support.",
+      actionText: phone,
+      href: `tel:${phone.replace(/[^0-9+]/g, '')}`,
+    },
+    {
+      icon: Mail,
+      title: siteSettings.contact_email_title || "Email Support",
+      desc: siteSettings.contact_email_desc || "Send us a detailed proposal or quality query. We read every email.",
+      actionText: email,
+      href: `mailto:${email}`,
+    },
+    {
+      icon: Clock,
+      title: siteSettings.contact_hours_title || "Working Hours",
+      desc: siteSettings.contact_hours_desc || "We are available online and offline during these times.",
+      actionText: hours,
+      href: null,
+    },
+  ];
 
   return (
     <div className="bg-bg-secondary min-h-screen">
@@ -60,10 +71,10 @@ export default async function ContactPage() {
               Get In Touch
             </span>
             <h1 className="font-serif text-4xl sm:text-5xl text-text-primary leading-tight">
-              Contact Sreelakshmi Agro
+              {heroTitle}
             </h1>
             <p className="font-sans text-base sm:text-lg text-text-secondary leading-relaxed">
-              Have questions about our Samba Broken Wheat, bulk pricing, or distributor applications? Our team is here to assist.
+              {heroSubtitle}
             </p>
           </div>
         </div>
@@ -116,16 +127,18 @@ export default async function ContactPage() {
               <div className="flex gap-4 items-start">
                 <MapPin className="w-6 h-6 text-brand-primary shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
-                  <h3 className="font-serif text-base font-bold text-text-primary">Office</h3>
+                  <h3 className="font-serif text-base font-bold text-text-primary">
+                    {siteSettings.contact_office_title || "Office"}
+                  </h3>
                   <p className="font-sans text-sm text-text-secondary leading-relaxed">
-                    Sreelakshmi Agro Industries, Methalapadam, Kodungallur, Thrissur District, Pin Code- 680 669, Kerala
+                    {address}
                   </p>
                 </div>
               </div>
               
               {/* WhatsApp direct CTA */}
               <a
-                href="https://wa.me/919847997979"
+                href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 border border-emerald-500 hover:bg-emerald-500 hover:text-white text-emerald-600 font-sans text-sm font-semibold py-3 rounded-md transition-all duration-300 shadow-sm"

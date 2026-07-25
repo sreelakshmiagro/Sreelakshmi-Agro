@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveGalleryImage } from '@/app/(admin)/admin/actions/gallery';
 import { useToast } from '@/components/admin/ui/Toast';
+import { ImageUploader } from '@/components/admin/ui/ImageUploader';
 
 export function GalleryForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
@@ -28,6 +29,11 @@ export function GalleryForm({ initialData }: { initialData?: any }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.image_url) {
+      toast.error('Image is required', 'Please upload an image or enter an image URL');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -45,97 +51,89 @@ export function GalleryForm({ initialData }: { initialData?: any }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow border border-border-light">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow border border-border-light max-w-4xl">
+      {/* Drag and Drop Image Uploader (User Requirement) */}
+      <div className="bg-gray-50/60 p-4 rounded-lg border border-gray-200">
+        <ImageUploader
+          label="Gallery Image (Drag & Drop or Browse)"
+          value={formData.image_url}
+          onChange={(url) => setFormData(prev => ({ ...prev, image_url: url }))}
+          altText={formData.alt_text}
+          onAltTextChange={(alt) => setFormData(prev => ({ ...prev, alt_text: alt }))}
+          placeholder="Drag & drop gallery photo here, or click to upload"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Image Title</label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+            placeholder="e.g. Modern Parboiling Machinery Facility"
+            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Alt Text</label>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">SEO Alt Text</label>
           <input
             type="text"
             name="alt_text"
             value={formData.alt_text}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+            placeholder="e.g. Sreelakshmi Agro parboiling unit and grain quality check"
+            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           />
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              name="image_url"
-              required
-              value={formData.image_url}
-              onChange={handleChange}
-              placeholder="https://..."
-              className="flex-1 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
-            />
-            <button type="button" onClick={() => window.open('/admin/media', '_blank')} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200">
-              Media Library
-            </button>
-          </div>
-          {formData.image_url && (
-            <div className="mt-2">
-              <img src={formData.image_url} alt="Preview" className="h-32 object-contain bg-gray-50 border rounded" />
-            </div>
-          )}
-        </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Album</label>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Album Name</label>
           <input
             type="text"
             name="album"
             value={formData.album}
             onChange={handleChange}
-            placeholder="e.g. Events, Factory"
-            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+            placeholder="e.g. Factory, Events, Certifications"
+            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Category</label>
           <input
             type="text"
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+            placeholder="e.g. Processing, Packaging, Team"
+            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Status</label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">Active (Visible)</option>
+            <option value="inactive">Inactive (Hidden)</option>
           </select>
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Sort Order</label>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Display Sort Order</label>
           <input
             type="number"
             name="sort_order"
             value={formData.sort_order}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           />
         </div>
       </div>
@@ -151,9 +149,9 @@ export function GalleryForm({ initialData }: { initialData?: any }) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-50"
+          className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving...' : 'Save'}
+          {isSubmitting ? 'Saving Image...' : 'Save Gallery Image'}
         </button>
       </div>
     </form>
