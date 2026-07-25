@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveFormConfig } from '@/app/(admin)/admin/actions/forms';
 import { useToast } from '@/components/admin/ui/Toast';
-import { Save, Briefcase, Users, Mail, Settings, Eye, CheckCircle2 } from 'lucide-react';
+import { Save, Briefcase, Users, Mail, Settings, Eye, Plus, Trash2, X, AlertTriangle } from 'lucide-react';
 
 interface FormTemplatesClientProps {
   initialConfigs: Record<string, any>;
@@ -16,17 +16,17 @@ const DEFAULT_CAREERS_CONFIG = {
   buttonText: 'Submit Application',
   successMessage: 'Thank you for applying. Our talent acquisition team will review your resume and experience matches, and contact you if there is a match.',
   fields: {
-    fullName: { label: 'FULL NAME', placeholder: 'e.g., Robert Frost', required: true },
-    positionApplied: { label: 'POSITION APPLIED FOR', placeholder: 'Select Open Opening', required: true },
-    phone: { label: 'MOBILE PHONE NUMBER', placeholder: '10-digit number', required: true },
-    email: { label: 'EMAIL ADDRESS', placeholder: 'you@domain.com', required: true },
-    experienceYears: { label: 'TOTAL YEARS OF EXPERIENCE', placeholder: '0', required: true },
-    qualification: { label: 'HIGHEST EDUCATIONAL QUALIFICATION', placeholder: 'e.g., B.Tech Food Tech / MBA Operations', required: true },
-    currentCompany: { label: 'CURRENT COMPANY (OPTIONAL)', placeholder: 'e.g., FMCG Corp', required: false },
-    expectedSalary: { label: 'EXPECTED SALARY (OPTIONAL)', placeholder: 'e.g., 6,000,000 INR', required: false },
-    noticePeriod: { label: 'NOTICE PERIOD (OPTIONAL)', placeholder: 'e.g., Immediate / 30 Days', required: false },
-    resumeUpload: { label: 'UPLOAD CV/RESUME', placeholder: 'Drag & drop file or browse (PDF, DOCX Max 5MB)', required: true },
-    coverLetter: { label: 'COVER LETTER / SUMMARY (OPTIONAL)', placeholder: 'Tell us why you are a good fit for this position...', required: false },
+    fullName: { label: 'FULL NAME', placeholder: 'e.g., Robert Frost', required: true, type: 'text' },
+    positionApplied: { label: 'POSITION APPLIED FOR', placeholder: 'Select Open Opening', required: true, type: 'select' },
+    phone: { label: 'MOBILE PHONE NUMBER', placeholder: '10-digit number', required: true, type: 'tel' },
+    email: { label: 'EMAIL ADDRESS', placeholder: 'you@domain.com', required: true, type: 'email' },
+    experienceYears: { label: 'TOTAL YEARS OF EXPERIENCE', placeholder: '0', required: true, type: 'number' },
+    qualification: { label: 'HIGHEST EDUCATIONAL QUALIFICATION', placeholder: 'e.g., B.Tech Food Tech / MBA Operations', required: true, type: 'text' },
+    currentCompany: { label: 'CURRENT COMPANY (OPTIONAL)', placeholder: 'e.g., FMCG Corp', required: false, type: 'text' },
+    expectedSalary: { label: 'EXPECTED SALARY (OPTIONAL)', placeholder: 'e.g., 6,000,000 INR', required: false, type: 'text' },
+    noticePeriod: { label: 'NOTICE PERIOD (OPTIONAL)', placeholder: 'e.g., Immediate / 30 Days', required: false, type: 'text' },
+    resumeUpload: { label: 'UPLOAD CV/RESUME', placeholder: 'Drag & drop file or browse (PDF, DOCX Max 5MB)', required: true, type: 'file' },
+    coverLetter: { label: 'COVER LETTER / SUMMARY (OPTIONAL)', placeholder: 'Tell us why you are a good fit for this position...', required: false, type: 'textarea' },
   }
 };
 
@@ -36,19 +36,19 @@ const DEFAULT_DISTRIBUTOR_CONFIG = {
   buttonText: 'Submit Partner Inquiry',
   successMessage: 'Thank you for your interest in Sreelakshmi Agro Industries. Our business development team will review your details and contact you within 24–48 hours.',
   fields: {
-    companyName: { label: 'COMPANY NAME', placeholder: 'e.g., Sreelakshmi Distributors', required: true },
-    contactPerson: { label: 'CONTACT PERSON NAME', placeholder: 'e.g., John Doe', required: true },
-    phone: { label: 'MOBILE PHONE NUMBER', placeholder: '10-digit number', required: true },
-    whatsapp: { label: 'WHATSAPP NUMBER (OPTIONAL)', placeholder: '10-digit number', required: false },
-    email: { label: 'EMAIL ADDRESS', placeholder: 'info@company.com', required: true },
-    state: { label: 'STATE', placeholder: 'Select an option', required: true },
-    district: { label: 'DISTRICT', placeholder: 'Select an option', required: true },
-    city: { label: 'CITY / TOWN', placeholder: 'e.g., City Center', required: true },
-    businessType: { label: 'BUSINESS TYPE', placeholder: 'Select an option', required: true },
-    yearsInBusiness: { label: 'YEARS IN BUSINESS', placeholder: '0', required: true },
-    expectedOrderVolume: { label: 'EXPECTED ORDER VOLUME', placeholder: 'Select an option', required: true },
-    currentProducts: { label: 'CURRENT BRANDS / PRODUCTS HANDLED', placeholder: 'e.g., Brand X Flour, Brand Y Rice', required: false },
-    message: { label: 'ADDITIONAL MESSAGE / ENQUIRIES', placeholder: 'Tell us about your distribution footprint...', required: false },
+    companyName: { label: 'COMPANY NAME', placeholder: 'e.g., Sreelakshmi Distributors', required: true, type: 'text' },
+    contactPerson: { label: 'CONTACT PERSON NAME', placeholder: 'e.g., John Doe', required: true, type: 'text' },
+    phone: { label: 'MOBILE PHONE NUMBER', placeholder: '10-digit number', required: true, type: 'tel' },
+    whatsapp: { label: 'WHATSAPP NUMBER (OPTIONAL)', placeholder: '10-digit number', required: false, type: 'tel' },
+    email: { label: 'EMAIL ADDRESS', placeholder: 'info@company.com', required: true, type: 'email' },
+    state: { label: 'STATE', placeholder: 'Select an option', required: true, type: 'select' },
+    district: { label: 'DISTRICT', placeholder: 'Select an option', required: true, type: 'select' },
+    city: { label: 'CITY / TOWN', placeholder: 'e.g., City Center', required: true, type: 'text' },
+    businessType: { label: 'BUSINESS TYPE', placeholder: 'Select an option', required: true, type: 'select' },
+    yearsInBusiness: { label: 'YEARS IN BUSINESS', placeholder: '0', required: true, type: 'number' },
+    expectedOrderVolume: { label: 'EXPECTED ORDER VOLUME', placeholder: 'Select an option', required: true, type: 'select' },
+    currentProducts: { label: 'CURRENT BRANDS / PRODUCTS HANDLED', placeholder: 'e.g., Brand X Flour, Brand Y Rice', required: false, type: 'text' },
+    message: { label: 'ADDITIONAL MESSAGE / ENQUIRIES', placeholder: 'Tell us about your distribution footprint...', required: false, type: 'textarea' },
   }
 };
 
@@ -58,11 +58,11 @@ const DEFAULT_CONTACT_CONFIG = {
   buttonText: 'Send Message →',
   successMessage: 'Thank you for contacting us. Our operations team will get in touch with you shortly.',
   fields: {
-    name: { label: 'FULL NAME', placeholder: 'e.g., Jane Smith', required: true },
-    phone: { label: 'MOBILE NUMBER', placeholder: '10-digit number', required: true },
-    email: { label: 'EMAIL ADDRESS', placeholder: 'you@email.com', required: true },
-    subject: { label: 'SUBJECT', placeholder: 'e.g., Pricing Inquiry / Feedback', required: true },
-    message: { label: 'YOUR MESSAGE', placeholder: 'Provide complete details to help us assist you...', required: true },
+    name: { label: 'FULL NAME', placeholder: 'e.g., Jane Smith', required: true, type: 'text' },
+    phone: { label: 'MOBILE NUMBER', placeholder: '10-digit number', required: true, type: 'tel' },
+    email: { label: 'EMAIL ADDRESS', placeholder: 'you@email.com', required: true, type: 'email' },
+    subject: { label: 'SUBJECT', placeholder: 'e.g., Pricing Inquiry / Feedback', required: true, type: 'text' },
+    message: { label: 'YOUR MESSAGE', placeholder: 'Provide complete details to help us assist you...', required: true, type: 'textarea' },
   }
 };
 
@@ -71,6 +71,15 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
   const toast = useToast();
   const [activeFormTab, setActiveFormTab] = useState<'careers' | 'distributor' | 'contact'>('careers');
   const [isSaving, setIsSaving] = useState(false);
+  const [showAddFieldModal, setShowAddFieldModal] = useState(false);
+
+  const [newFieldData, setNewFieldData] = useState({
+    key: '',
+    label: '',
+    placeholder: '',
+    type: 'text',
+    required: false,
+  });
 
   const [careersConfig, setCareersConfig] = useState(initialConfigs.form_careers_config || DEFAULT_CAREERS_CONFIG);
   const [distributorConfig, setDistributorConfig] = useState(initialConfigs.form_distributor_config || DEFAULT_DISTRIBUTOR_CONFIG);
@@ -93,13 +102,44 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
       } else {
         await saveFormConfig('form_contact_config', contactConfig);
       }
-      toast.success('Form template and field labels updated successfully!');
+      toast.success('Form template and field configs saved successfully!');
       router.refresh();
     } catch (err: any) {
       toast.error('Failed to save form config', err.message);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDeleteField = (fieldKey: string) => {
+    const updatedFields = { ...currentConfig.fields };
+    delete updatedFields[fieldKey];
+    setCurrentConfig({ ...currentConfig, fields: updatedFields });
+    toast.info(`Field "${fieldKey}" removed`);
+  };
+
+  const handleAddField = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFieldData.key.trim() || !newFieldData.label.trim()) {
+      toast.error('Field key and label are required');
+      return;
+    }
+
+    const cleanKey = newFieldData.key.replace(/[^a-zA-Z0-9_]/g, '');
+    const updatedFields = {
+      ...currentConfig.fields,
+      [cleanKey]: {
+        label: newFieldData.label.toUpperCase(),
+        placeholder: newFieldData.placeholder,
+        type: newFieldData.type,
+        required: newFieldData.required,
+      }
+    };
+
+    setCurrentConfig({ ...currentConfig, fields: updatedFields });
+    toast.success(`Field "${newFieldData.label}" added successfully!`);
+    setShowAddFieldModal(false);
+    setNewFieldData({ key: '', label: '', placeholder: '', type: 'text', required: false });
   };
 
   return (
@@ -142,17 +182,27 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900 capitalize">{activeFormTab} Form Configuration</h2>
-              <p className="text-xs text-gray-500">Edit titles, subtitles, placeholders, and field visibility</p>
+              <p className="text-xs text-gray-500">Edit titles, subheadings, placeholders, and add/delete form fields</p>
             </div>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white rounded-md hover:bg-brand-primary/90 text-sm font-semibold disabled:opacity-50 shadow-sm"
-            >
-              <Save className="w-4 h-4" />
-              {isSaving ? 'Saving...' : 'Save Form Changes'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowAddFieldModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-md hover:bg-emerald-100 text-xs font-bold transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Add Field
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 px-5 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary/90 text-sm font-semibold disabled:opacity-50 shadow-sm"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Saving...' : 'Save Form Changes'}
+              </button>
+            </div>
           </div>
 
           {/* Form Header Settings */}
@@ -202,30 +252,57 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
             </div>
           </div>
 
-          {/* Form Fields Settings */}
+          {/* Form Fields Settings (User Requirement: Add & Delete Fields) */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Field Labels & Placeholders</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                Fields List ({Object.keys(currentConfig.fields || {}).length} Fields)
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowAddFieldModal(true)}
+                className="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Custom Field
+              </button>
+            </div>
             
             <div className="space-y-4">
               {Object.entries(currentConfig.fields || {}).map(([key, fieldObj]: [string, any]) => (
-                <div key={key} className="p-3 bg-white border border-gray-200 rounded-md space-y-2">
+                <div key={key} className="p-3 bg-white border border-gray-200 rounded-md space-y-2 relative group hover:border-brand-primary/40 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-gray-500 uppercase">{key}</span>
-                    <label className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
-                      <input
-                        type="checkbox"
-                        checked={fieldObj.required}
-                        onChange={(e) => {
-                          const updatedFields = {
-                            ...currentConfig.fields,
-                            [key]: { ...fieldObj, required: e.target.checked }
-                          };
-                          setCurrentConfig({ ...currentConfig, fields: updatedFields });
-                        }}
-                        className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
-                      />
-                      <span>Required Field</span>
-                    </label>
+                    <span className="text-xs font-mono font-bold text-gray-500 uppercase flex items-center gap-2">
+                      <span>{key}</span>
+                      <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded uppercase font-semibold">{fieldObj.type || 'text'}</span>
+                    </span>
+
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1.5 text-xs text-gray-600 font-medium cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldObj.required}
+                          onChange={(e) => {
+                            const updatedFields = {
+                              ...currentConfig.fields,
+                              [key]: { ...fieldObj, required: e.target.checked }
+                            };
+                            setCurrentConfig({ ...currentConfig, fields: updatedFields });
+                          }}
+                          className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
+                        />
+                        <span>Required Field</span>
+                      </label>
+
+                      {/* Delete Field Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteField(key)}
+                        className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                        title={`Delete field "${key}"`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -271,7 +348,7 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
         <div className="lg:col-span-5 space-y-4 sticky top-6">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
             <Eye className="w-4 h-4 text-brand-primary" />
-            <span>Live Public Form Preview</span>
+            <span>Live Public Form Preview ({Object.keys(currentConfig.fields || {}).length} Fields)</span>
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-border-light shadow-md space-y-5">
@@ -280,23 +357,29 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
               <p className="font-sans text-xs text-text-secondary mt-1">{currentConfig.subtitle}</p>
             </div>
 
-            <div className="space-y-3">
-              {Object.entries(currentConfig.fields || {}).slice(0, 5).map(([key, f]: [string, any]) => (
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+              {Object.entries(currentConfig.fields || {}).map(([key, f]: [string, any]) => (
                 <div key={key} className="space-y-1">
                   <label className="block font-sans text-[10px] font-semibold text-text-secondary uppercase tracking-wider">
                     {f.label} {f.required && <span className="text-red-500">*</span>}
                   </label>
-                  <input
-                    disabled
-                    type="text"
-                    placeholder={f.placeholder}
-                    className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-xs text-gray-400 cursor-not-allowed"
-                  />
+                  {f.type === 'textarea' ? (
+                    <textarea
+                      disabled
+                      rows={2}
+                      placeholder={f.placeholder}
+                      className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-xs text-gray-400 cursor-not-allowed"
+                    />
+                  ) : (
+                    <input
+                      disabled
+                      type="text"
+                      placeholder={f.placeholder}
+                      className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-xs text-gray-400 cursor-not-allowed"
+                    />
+                  )}
                 </div>
               ))}
-              {Object.keys(currentConfig.fields || {}).length > 5 && (
-                <p className="text-[11px] text-gray-400 italic text-center pt-1">+ {Object.keys(currentConfig.fields).length - 5} more fields enabled</p>
-              )}
             </div>
 
             <button
@@ -308,6 +391,103 @@ export function FormTemplatesClient({ initialConfigs }: FormTemplatesClientProps
           </div>
         </div>
       </div>
+
+      {/* Add Custom Field Modal */}
+      {showAddFieldModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 border border-gray-200 shadow-xl relative">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="text-base font-bold text-gray-900">Add New Custom Field</h3>
+              <button onClick={() => setShowAddFieldModal(false)} className="p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddField} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Field ID / Key (Unique CamelCase) *</label>
+                <input
+                  required
+                  type="text"
+                  value={newFieldData.key}
+                  onChange={(e) => setNewFieldData({ ...newFieldData, key: e.target.value })}
+                  placeholder="e.g. gstNumber or preferredLocation"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Field Label *</label>
+                <input
+                  required
+                  type="text"
+                  value={newFieldData.label}
+                  onChange={(e) => setNewFieldData({ ...newFieldData, label: e.target.value })}
+                  placeholder="e.g. GST NUMBER / PREFERRED LOCATION"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Placeholder Text</label>
+                <input
+                  type="text"
+                  value={newFieldData.placeholder}
+                  onChange={(e) => setNewFieldData({ ...newFieldData, placeholder: e.target.value })}
+                  placeholder="e.g. Enter 15-digit GST details"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Field Type</label>
+                  <select
+                    value={newFieldData.type}
+                    onChange={(e) => setNewFieldData({ ...newFieldData, type: e.target.value })}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                  >
+                    <option value="text">Text Input</option>
+                    <option value="textarea">Textarea (Multi-line)</option>
+                    <option value="number">Number</option>
+                    <option value="email">Email</option>
+                    <option value="tel">Phone (Tel)</option>
+                    <option value="select">Dropdown Select</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center pt-6">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newFieldData.required}
+                      onChange={(e) => setNewFieldData({ ...newFieldData, required: e.target.checked })}
+                      className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
+                    />
+                    <span>Is Required?</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowAddFieldModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-brand-primary hover:bg-brand-primary/90 rounded shadow"
+                >
+                  Add Custom Field
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
