@@ -103,36 +103,38 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
     ? positions
     : (configuredPositionOptions.length > 0 ? configuredPositionOptions.map((title: string) => ({ id: title, title })) : []);
 
-  // Direct upload to Supabase Public Bucket 'media' or Base64 fallback
+  // Direct upload to Supabase Bucket or Base64 binary PDF fallback
   const handleResumeUpload = async (file: File): Promise<string> => {
+    // 1. Convert file to Base64 Data URL first so binary content is 100% captured
+    const base64Data: string = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+
     try {
       const supabase = createClient();
       const fileExt = file.name.split(".").pop() || "pdf";
       const fileName = `${Math.random().toString(36).substring(2, 9)}-${Date.now()}.${fileExt}`;
       const filePath = `resumes/${fileName}`;
 
-      // Upload to 'media' bucket which has public permissions enabled
+      // Upload to 'resumes' or 'media' bucket
       const { data, error } = await supabase.storage
-        .from("media")
+        .from("resumes")
         .upload(filePath, file, { cacheControl: "3600", upsert: true });
 
       if (!error && data?.path) {
-        return data.path; // e.g. "resumes/filename.pdf"
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://fsyqsenggdudvddekoij.supabase.co";
+        return `${supabaseUrl}/storage/v1/object/public/resumes/${data.path}`;
       }
 
-      console.warn("Supabase storage upload fallback to Base64:", error?.message);
+      console.warn("Storage upload warning, using Base64 PDF binary fallback:", error?.message);
     } catch (err) {
-      console.warn("Resume upload fallback to Base64:", err);
+      console.warn("Resume upload error, using Base64 PDF binary fallback:", err);
     }
 
-    // Base64 Data URL Fallback so file content is guaranteed stored and downloadable
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
+    // Always fallback to complete Base64 Data URL containing the exact file binary
+    return base64Data;
   };
 
   const toast = useToast();

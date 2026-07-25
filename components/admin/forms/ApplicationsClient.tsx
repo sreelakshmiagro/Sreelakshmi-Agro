@@ -46,56 +46,72 @@ export function ApplicationsClient({ data }: { data: any[] }) {
 
     const safeName = (applicantName || 'Candidate').replace(/\s+/g, '_');
 
-    // 1. Base64 Data URL
+    // 1. Base64 Data URL (Original PDF/DOCX Binary stored in DB)
     if (resumePath.startsWith('data:')) {
+      const mimeMatch = resumePath.match(/^data:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+      const ext = mime.includes('word') || mime.includes('document') ? 'docx' : 'pdf';
+
       const a = document.createElement('a');
       a.href = resumePath;
-      a.download = `${safeName}_Resume.pdf`;
+      a.download = `${safeName}_Resume.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      toast.success('Resume Downloaded', `Downloaded CV for ${applicantName}`);
+      toast.success('Resume Downloaded', `Downloaded original CV for ${applicantName}`);
       return;
     }
 
-    // 2. Full External URL
+    // 2. Full HTTP/HTTPS URL (Supabase Storage or Remote File)
     if (resumePath.startsWith('http://') || resumePath.startsWith('https://')) {
-      window.open(resumePath, '_blank');
+      fetch(resumePath)
+        .then((res) => {
+          if (!res.ok) throw new Error('File not found in storage');
+          return res.blob();
+        })
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${safeName}_Resume.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          toast.success('Resume Downloaded', `Downloaded CV for ${applicantName}`);
+        })
+        .catch(() => {
+          window.open(resumePath, '_blank');
+        });
       return;
     }
 
-    // 3. Local test fallback file string
-    if (resumePath.startsWith('local-')) {
-      const fileNameClean = resumePath.replace('local-', '');
-      const textContent = `SREELAKSHMI AGRO INDUSTRIES - CANDIDATE APPLICATION\n\nApplicant Name: ${applicantName}\nSubmitted File Name: ${fileNameClean}\nReference ID: ${resumePath}\nStatus: Submitted`;
-      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${safeName}_Application_Summary.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.info('Application Details Exported', `Downloaded candidate details for ${applicantName}`);
-      return;
-    }
-
-    // 4. Supabase Storage Object (media bucket)
+    // 3. Storage Relative Path
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fsyqsenggdudvddekoij.supabase.co';
-    const cleanPath = resumePath.replace(/^\/+/, '');
-    const finalUrl = cleanPath.startsWith('media/')
+    const cleanPath = resumePath.replace(/^local-/, '').replace(/^\/+/, '');
+    const targetUrl = cleanPath.startsWith('resumes/') || cleanPath.startsWith('media/')
       ? `${supabaseUrl}/storage/v1/object/public/${cleanPath}`
-      : `${supabaseUrl}/storage/v1/object/public/media/${cleanPath}`;
+      : `${supabaseUrl}/storage/v1/object/public/resumes/${cleanPath}`;
 
-    const a = document.createElement('a');
-    a.href = finalUrl;
-    a.target = '_blank';
-    a.download = `${safeName}_Resume.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    toast.success('Resume Opening', `Opening resume for ${applicantName}`);
+    fetch(targetUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error('File not found in storage');
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeName}_Resume.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Resume Downloaded', `Downloaded CV for ${applicantName}`);
+      })
+      .catch(() => {
+        window.open(targetUrl, '_blank');
+      });
   };
 
   const columns = [
