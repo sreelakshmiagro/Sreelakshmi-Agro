@@ -8,14 +8,24 @@ import { CheckCircle, AlertCircle, ArrowRight, Loader } from "lucide-react";
 import { contactSchema, type ContactFormInput } from "@/lib/validation";
 import { submitContactInquiry } from "@/app/actions/leads";
 import FormInput from "@/components/common/FormInput";
+import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
+
+const KNOWN_CONTACT_KEYS = ["name", "phone", "email", "subject", "message"];
 
 export default function ContactForm({ formConfig }: { formConfig?: any }) {
   const cfg = formConfig || {
     title: "Send Us a Quick Message",
     subtitle: "We generally respond to messages within 24 business hours.",
     buttonText: "Send Message →",
-    successMessage: "Thank you for contacting us. Our operations team will get in touch with you shortly."
+    successMessage: "Thank you for contacting us. Our operations team will get in touch with you shortly.",
+    fields: {
+      name: { label: "FULL NAME", placeholder: "e.g., Jane Smith" },
+      phone: { label: "MOBILE NUMBER", placeholder: "10-digit number" },
+      email: { label: "EMAIL ADDRESS", placeholder: "you@email.com" },
+      subject: { label: "SUBJECT", placeholder: "e.g., Pricing Inquiry / Feedback" },
+      message: { label: "YOUR MESSAGE", placeholder: "Provide complete details to help us assist you..." }
+    }
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,47 +125,78 @@ export default function ContactForm({ formConfig }: { formConfig?: any }) {
             )}
 
             <FormInput
-              label="Full Name"
+              label={cfg.fields?.name?.label || "Full Name"}
               id="name"
-              placeholder="e.g., Jane Smith"
+              placeholder={cfg.fields?.name?.placeholder || "e.g., Jane Smith"}
               error={errors.name?.message}
               {...register("name")}
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput
-                label="Mobile Number"
+                label={cfg.fields?.phone?.label || "Mobile Number"}
                 id="phone"
                 type="tel"
-                placeholder="10-digit number"
+                placeholder={cfg.fields?.phone?.placeholder || "10-digit number"}
                 error={errors.phone?.message}
                 {...register("phone")}
               />
               <FormInput
-                label="Email Address"
+                label={cfg.fields?.email?.label || "Email Address"}
                 id="email"
                 type="email"
-                placeholder="you@email.com"
+                placeholder={cfg.fields?.email?.placeholder || "you@email.com"}
                 error={errors.email?.message}
                 {...register("email")}
               />
             </div>
 
             <FormInput
-              label="Subject"
+              label={cfg.fields?.subject?.label || "Subject"}
               id="subject"
-              placeholder="e.g., Pricing Inquiry / Feedback"
+              placeholder={cfg.fields?.subject?.placeholder || "e.g., Pricing Inquiry / Feedback"}
               error={errors.subject?.message}
               {...register("subject")}
             />
 
             <FormTextarea
-              label="Your Message"
+              label={cfg.fields?.message?.label || "Your Message"}
               id="message"
-              placeholder="Provide complete details to help us assist you..."
+              placeholder={cfg.fields?.message?.placeholder || "Provide complete details to help us assist you..."}
               error={errors.message?.message}
               {...register("message")}
             />
+
+            {/* Additional Custom Fields Dynamic Loop */}
+            {Object.entries(cfg.fields || {})
+              .filter(([key]) => !KNOWN_CONTACT_KEYS.includes(key))
+              .map(([key, f]: [string, any]) => (
+                <div key={key} className="w-full">
+                  {f.type === 'textarea' ? (
+                    <FormTextarea
+                      label={f.label}
+                      id={key}
+                      placeholder={f.placeholder}
+                      {...register(key as any)}
+                    />
+                  ) : f.type === 'select' ? (
+                    <FormSelect
+                      label={f.label}
+                      id={key}
+                      options={(f.options || []).map((o: string) => ({ label: o, value: o }))}
+                      {...register(key as any)}
+                    />
+                  ) : (
+                    <FormInput
+                      label={f.label}
+                      id={key}
+                      type={f.type || 'text'}
+                      placeholder={f.placeholder}
+                      {...register(key as any)}
+                    />
+                  )}
+                </div>
+              ))}
 
             <button
               type="submit"

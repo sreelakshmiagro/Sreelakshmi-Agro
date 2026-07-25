@@ -9,6 +9,7 @@ import { careerSchema, type CareerFormInput } from "@/lib/validation";
 import { submitJobApplication } from "@/app/actions/leads";
 import { createClient } from "@/lib/supabase/client";
 import FormInput from "@/components/common/FormInput";
+import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
 import FileUpload from "@/components/common/FileUpload";
 
@@ -18,6 +19,12 @@ interface CareerFormProps {
   onSuccess?: () => void;
   formConfig?: any;
 }
+
+const KNOWN_CAREER_KEYS = [
+  "fullName", "positionId", "positionApplied", "phone", "email",
+  "experienceYears", "qualification", "currentCompany", "expectedSalary",
+  "noticePeriod", "resumeUpload", "resumePath", "coverLetter", "consent"
+];
 
 export default function CareerForm({ positions, selectedPositionId = "", onSuccess, formConfig }: CareerFormProps) {
   const cfg = formConfig || {
@@ -68,6 +75,12 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
       consent: undefined as any,
     },
   });
+
+  // Position options combining DB active jobs + Admin configured dropdown options
+  const configuredPositionOptions = cfg.fields?.positionApplied?.options || [];
+  const displayPositions = positions && positions.length > 0
+    ? positions
+    : (configuredPositionOptions.length > 0 ? configuredPositionOptions.map((title: string) => ({ id: title, title })) : []);
 
   // Direct upload to Supabase Private Bucket
   const handleResumeUpload = async (file: File): Promise<string> => {
@@ -173,9 +186,9 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
             {/* Grid 1: Basic details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
-                label="Full Name"
+                label={cfg.fields?.fullName?.label || "Full Name"}
                 id="fullName"
-                placeholder="e.g., Robert Frost"
+                placeholder={cfg.fields?.fullName?.placeholder || "e.g., Robert Frost"}
                 error={errors.fullName?.message}
                 {...register("fullName")}
               />
@@ -184,7 +197,7 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
                   htmlFor="positionId"
                   className="font-sans text-xs font-semibold text-text-secondary uppercase tracking-wider"
                 >
-                  Position Applied For
+                  {cfg.fields?.positionApplied?.label || "Position Applied For"}
                 </label>
                 <select
                   id="positionId"
@@ -194,8 +207,8 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
                   }`}
                   {...register("positionId")}
                 >
-                  <option value="" disabled>Select Open Opening</option>
-                  {positions.map((pos) => (
+                  <option value="" disabled>{cfg.fields?.positionApplied?.placeholder || "Select Open Opening"}</option>
+                  {displayPositions.map((pos: any) => (
                     <option key={pos.id} value={pos.id}>
                       {pos.title}
                     </option>
@@ -212,17 +225,17 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
             {/* Grid 2: Contact Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
-                label="Mobile Phone Number"
+                label={cfg.fields?.phone?.label || "Mobile Phone Number"}
                 id="phone"
-                placeholder="10-digit number"
+                placeholder={cfg.fields?.phone?.placeholder || "10-digit number"}
                 error={errors.phone?.message}
                 {...register("phone")}
               />
               <FormInput
-                label="Email Address"
+                label={cfg.fields?.email?.label || "Email Address"}
                 id="email"
                 type="email"
-                placeholder="you@domain.com"
+                placeholder={cfg.fields?.email?.placeholder || "you@domain.com"}
                 error={errors.email?.message}
                 {...register("email")}
               />
@@ -231,17 +244,17 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
             {/* Grid 3: Experience & Qualification */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
-                label="Total Years of Experience"
+                label={cfg.fields?.experienceYears?.label || "Total Years of Experience"}
                 id="experienceYears"
                 type="number"
-                placeholder="0"
+                placeholder={cfg.fields?.experienceYears?.placeholder || "0"}
                 error={errors.experienceYears?.message}
                 {...register("experienceYears")}
               />
               <FormInput
-                label="Highest Educational Qualification"
+                label={cfg.fields?.qualification?.label || "Highest Educational Qualification"}
                 id="qualification"
-                placeholder="e.g., B.Tech Food Tech / MBA Operations"
+                placeholder={cfg.fields?.qualification?.placeholder || "e.g., B.Tech Food Tech / MBA Operations"}
                 error={errors.qualification?.message}
                 {...register("qualification")}
               />
@@ -250,23 +263,23 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
             {/* Grid 4: Compensation & Salary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormInput
-                label="Current Company (Optional)"
+                label={cfg.fields?.currentCompany?.label || "Current Company (Optional)"}
                 id="currentCompany"
-                placeholder="e.g., FMCG Corp"
+                placeholder={cfg.fields?.currentCompany?.placeholder || "e.g., FMCG Corp"}
                 error={errors.currentCompany?.message}
                 {...register("currentCompany")}
               />
               <FormInput
-                label="Expected Salary (Optional)"
+                label={cfg.fields?.expectedSalary?.label || "Expected Salary (Optional)"}
                 id="expectedSalary"
-                placeholder="e.g., 6,000,000 INR"
+                placeholder={cfg.fields?.expectedSalary?.placeholder || "e.g., 6,000,000 INR"}
                 error={errors.expectedSalary?.message}
                 {...register("expectedSalary")}
               />
               <FormInput
-                label="Notice Period (Optional)"
+                label={cfg.fields?.noticePeriod?.label || "Notice Period (Optional)"}
                 id="noticePeriod"
-                placeholder="e.g., Immediate / 30 Days"
+                placeholder={cfg.fields?.noticePeriod?.placeholder || "e.g., Immediate / 30 Days"}
                 error={errors.noticePeriod?.message}
                 {...register("noticePeriod")}
               />
@@ -277,7 +290,7 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
               control={control}
               render={({ field }: any) => (
                 <FileUpload
-                  label="Upload CV/Resume"
+                  label={cfg.fields?.resumeUpload?.label || "Upload CV/Resume"}
                   id="resumePath"
                   value={field.value}
                   onChange={field.onChange}
@@ -288,12 +301,43 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
             />
 
             <FormTextarea
-              label="Cover Letter / Summary (Optional)"
+              label={cfg.fields?.coverLetter?.label || "Cover Letter / Summary (Optional)"}
               id="coverLetter"
-              placeholder="Tell us why you are a good fit for this position..."
+              placeholder={cfg.fields?.coverLetter?.placeholder || "Tell us why you are a good fit for this position..."}
               error={errors.coverLetter?.message}
               {...register("coverLetter")}
             />
+
+            {/* Additional Custom Fields Dynamic Loop */}
+            {Object.entries(cfg.fields || {})
+              .filter(([key]) => !KNOWN_CAREER_KEYS.includes(key))
+              .map(([key, f]: [string, any]) => (
+                <div key={key} className="w-full">
+                  {f.type === 'textarea' ? (
+                    <FormTextarea
+                      label={f.label}
+                      id={key}
+                      placeholder={f.placeholder}
+                      {...register(key as any)}
+                    />
+                  ) : f.type === 'select' ? (
+                    <FormSelect
+                      label={f.label}
+                      id={key}
+                      options={(f.options || []).map((o: string) => ({ label: o, value: o }))}
+                      {...register(key as any)}
+                    />
+                  ) : (
+                    <FormInput
+                      label={f.label}
+                      id={key}
+                      type={f.type || 'text'}
+                      placeholder={f.placeholder}
+                      {...register(key as any)}
+                    />
+                  )}
+                </div>
+              ))}
 
             {/* Consent Box */}
             <div className="flex flex-col gap-2 mt-2">

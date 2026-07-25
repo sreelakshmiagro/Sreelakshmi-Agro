@@ -12,18 +12,24 @@ import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
 import { ALL_INDIAN_STATES, getDistrictsForState } from "@/lib/indiaData";
 
-const businessTypes = [
+const defaultBusinessTypes = [
   { label: "Wholesaler / Trader", value: "Wholesaler" },
   { label: "Super Stockist", value: "Stockist" },
   { label: "Retail Chain Partner", value: "Retailer" },
   { label: "Agro-Inputs Distributor", value: "Distributor" },
 ];
 
-const volumes = [
+const defaultVolumes = [
   { label: "Under 5 Tons / Month", value: "under-5" },
   { label: "5 - 15 Tons / Month", value: "5-15" },
   { label: "15 - 50 Tons / Month", value: "15-50" },
   { label: "Above 50 Tons / Month", value: "above-50" },
+];
+
+const KNOWN_DISTRIBUTOR_KEYS = [
+  "companyName", "contactPerson", "phone", "whatsapp", "email",
+  "state", "district", "city", "businessType", "yearsInBusiness",
+  "expectedOrderVolume", "currentProducts", "message", "consent"
 ];
 
 export default function BecomeDistributorForm({ formConfig }: { formConfig?: any }) {
@@ -79,6 +85,15 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
   const districtsOptions = districtsList.length > 0
     ? districtsList.map((d: any) => ({ label: d, value: d }))
     : [{ label: selectedState ? "No districts found" : "-- Select State First --", value: "" }];
+
+  // Dynamic Business Types & Volumes from admin formConfig options
+  const businessTypesOptions = (cfg.fields?.businessType?.options && cfg.fields.businessType.options.length > 0)
+    ? cfg.fields.businessType.options.map((opt: string) => ({ label: opt, value: opt }))
+    : defaultBusinessTypes;
+
+  const volumesOptions = (cfg.fields?.expectedOrderVolume?.options && cfg.fields.expectedOrderVolume.options.length > 0)
+    ? cfg.fields.expectedOrderVolume.options.map((opt: string) => ({ label: opt, value: opt }))
+    : defaultVolumes;
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
@@ -234,19 +249,19 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
               />
             </div>
 
-            {/* Grid 4: Business Parameters */}
+            {/* Grid 4: Business Parameters (Consuming Admin Config Options) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormSelect
                 label={cfg.fields?.businessType?.label || "Business Type"}
                 id="businessType"
-                options={businessTypes}
+                options={businessTypesOptions}
                 error={errors.businessType?.message}
                 {...register("businessType")}
               />
               <FormSelect
                 label={cfg.fields?.expectedOrderVolume?.label || "Expected Order Volume"}
                 id="expectedOrderVolume"
-                options={volumes}
+                options={volumesOptions}
                 error={errors.expectedOrderVolume?.message}
                 {...register("expectedOrderVolume")}
               />
@@ -267,6 +282,37 @@ export default function BecomeDistributorForm({ formConfig }: { formConfig?: any
               error={errors.message?.message}
               {...register("message")}
             />
+
+            {/* Additional Custom Fields Dynamic Loop */}
+            {Object.entries(cfg.fields || {})
+              .filter(([key]) => !KNOWN_DISTRIBUTOR_KEYS.includes(key))
+              .map(([key, f]: [string, any]) => (
+                <div key={key} className="w-full">
+                  {f.type === 'textarea' ? (
+                    <FormTextarea
+                      label={f.label}
+                      id={key}
+                      placeholder={f.placeholder}
+                      {...register(key as any)}
+                    />
+                  ) : f.type === 'select' ? (
+                    <FormSelect
+                      label={f.label}
+                      id={key}
+                      options={(f.options || []).map((o: string) => ({ label: o, value: o }))}
+                      {...register(key as any)}
+                    />
+                  ) : (
+                    <FormInput
+                      label={f.label}
+                      id={key}
+                      type={f.type || 'text'}
+                      placeholder={f.placeholder}
+                      {...register(key as any)}
+                    />
+                  )}
+                </div>
+              ))}
 
             {/* Consent Box */}
             <div className="flex flex-col gap-2 mt-2">
