@@ -4,12 +4,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit, Trash2, CheckSquare, Square, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckSquare, Square, AlertTriangle, Copy } from 'lucide-react';
 import { StatusBadge } from '@/components/admin/ui/StatusBadge';
 import { Pagination } from '@/components/admin/ui/Pagination';
 import { ConfirmDialog } from '@/components/admin/ui/ConfirmDialog';
 import { useToast } from '@/components/admin/ui/Toast';
-import { deleteProduct, deleteProducts } from '@/app/(admin)/admin/actions/products';
+import { deleteProduct, deleteProducts, duplicateProduct } from '@/app/(admin)/admin/actions/products';
 
 interface ProductsClientProps {
   products: any[];
@@ -208,8 +208,22 @@ export function ProductsClient({ products, currentPage, totalPages }: ProductsCl
                       </td>
 
                       {/* Actions */}
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const res = await duplicateProduct(p.id);
+                                toast.success('Product duplicated successfully as (Copy)');
+                                router.push(`/admin/products/${res.newId}`);
+                              } catch (err: any) {
+                                toast.error('Failed to duplicate product', err.message);
+                              }
+                            }}
+                            className="text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center gap-1"
+                            title="Duplicate Product"
+                          >
+                            <Copy className="w-3.5 h-3.5" /> Duplicate
+                          </button>
                           <Link
                             href={`/admin/products/${p.id}`}
                             className="text-gray-600 hover:text-brand-primary font-medium text-xs flex items-center gap-1"
@@ -223,8 +237,6 @@ export function ProductsClient({ products, currentPage, totalPages }: ProductsCl
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Delete
                           </button>
-                        </div>
-                      </td>
                     </tr>
                   );
                 })

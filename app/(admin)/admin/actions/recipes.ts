@@ -58,3 +58,40 @@ export async function deleteRecipe(id: string) {
   revalidatePath('/admin/recipes');
   return { success: true };
 }
+
+export async function duplicateRecipe(id: string) {
+  const supabase = await createClient();
+  
+  // 1. Fetch original recipe
+  const { data: original, error: fetchError } = await supabase
+    .from('recipes')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !original) throw new Error(fetchError?.message || 'Recipe not found');
+
+  // 2. Prepare cloned object
+  const { id: _, created_at: __, updated_at: ___, ...rest } = original;
+  const newName = `${original.name} (Copy)`;
+  const newSlug = `${original.slug}-copy-${Math.random().toString(36).substring(2, 6)}`;
+
+  const duplicateData = {
+    ...rest,
+    name: newName,
+    slug: newSlug,
+    status: 'draft',
+  };
+
+  // 3. Insert duplicate
+  const { data: newRcp, error: insertError } = await supabase
+    .from('recipes')
+    .insert([duplicateData])
+    .select('id')
+    .single();
+
+  if (insertError) throw new Error(insertError.message);
+
+  revalidatePath('/admin/recipes');
+  return { success: true, newId: newRcp.id };
+}

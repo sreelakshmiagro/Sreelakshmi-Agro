@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createProduct, updateProduct, getProduct, deleteProduct } from '@/app/(admin)/admin/actions/products';
+import { createProduct, updateProduct, getProduct, deleteProduct, duplicateProduct } from '@/app/(admin)/admin/actions/products';
 import { useToast } from '@/components/admin/ui/Toast';
 import { ConfirmDialog } from '@/components/admin/ui/ConfirmDialog';
 import { ImageUploader } from '@/components/admin/ui/ImageUploader';
-import { Save, Trash2, ArrowLeft, Plus, X, Layers, Image as ImageIcon, HelpCircle, Sparkles, Activity, Wand2 } from 'lucide-react';
+import { Save, Trash2, ArrowLeft, Plus, X, Layers, Image as ImageIcon, HelpCircle, Sparkles, Activity, Wand2, Copy } from 'lucide-react';
 
 const CATEGORY_OPTIONS = [
   'Wheat Grains',
@@ -229,14 +229,32 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
         </div>
         {productId && (
-          <button
-            type="button"
-            onClick={() => setShowDelete(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-red-50 border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const res = await duplicateProduct(productId);
+                  toast.success('Product duplicated successfully as (Copy)');
+                  router.push(`/admin/products/${res.newId}`);
+                } catch (err: any) {
+                  toast.error('Failed to duplicate product', err.message);
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-md bg-indigo-50 border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-100 transition-colors"
+            >
+              <Copy className="h-4 w-4" />
+              Duplicate
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDelete(true)}
+              className="inline-flex items-center gap-2 rounded-md bg-red-50 border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          </div>
         )}
       </div>
 

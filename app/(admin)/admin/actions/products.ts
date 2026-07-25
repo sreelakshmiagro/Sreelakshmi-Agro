@@ -57,6 +57,45 @@ export async function deleteProducts(ids: string[]) {
   return { success: true };
 }
 
+export async function duplicateProduct(id: string) {
+  const supabase = await createClient();
+  
+  // 1. Fetch original product
+  const { data: original, error: fetchError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !original) throw new Error(fetchError?.message || 'Product not found');
+
+  // 2. Prepare cloned object
+  const { id: _, created_at: __, updated_at: ___, ...rest } = original;
+  const newName = `${original.name} (Copy)`;
+  const newSlug = `${original.slug}-copy-${Math.random().toString(36).substring(2, 6)}`;
+
+  const duplicateData = {
+    ...rest,
+    name: newName,
+    slug: newSlug,
+    status: 'draft', // cloned products start as draft
+    is_featured: false,
+    is_flagship: false,
+  };
+
+  // 3. Insert duplicate
+  const { data: newProd, error: insertError } = await supabase
+    .from('products')
+    .insert([duplicateData])
+    .select('id')
+    .single();
+
+  if (insertError) throw new Error(insertError.message);
+
+  revalidatePath('/admin/products');
+  return { success: true, newId: newProd.id };
+}
+
 export async function uploadProductMedia(formData: FormData) {
   const file = formData.get('file') as File;
   if (!file) throw new Error('No file provided');
@@ -76,7 +115,6 @@ export async function uploadProductMedia(formData: FormData) {
     });
 
   if (uploadError) {
-    // If RLS policy check fails on storage, try fallback upload or return clear error
     throw new Error(uploadError.message);
   }
 
