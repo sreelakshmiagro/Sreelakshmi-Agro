@@ -4,6 +4,7 @@ import "./globals.css";
 import PublicLayoutWrapper from "@/components/layout/PublicLayoutWrapper";
 import { Suspense } from "react";
 import GlobalPreloader from "@/components/common/GlobalPreloader";
+import GoogleAnalytics from "@/components/common/GoogleAnalytics";
 import { getSiteSettings } from "@/lib/data";
 
 const lora = Lora({
@@ -84,6 +85,9 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
       <body style={{ colorScheme: "light" }} className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         <Suspense fallback={null}>
           <GlobalPreloader />
         </Suspense>
