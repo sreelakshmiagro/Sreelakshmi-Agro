@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Upload, X } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const SUPABASE_URL = "https://fsyqsenggdudvddekoij.supabase.co";
@@ -16,6 +16,58 @@ interface ImageUploaderProps {
   onAltTextChange?: (alt: string) => void;
   placeholder?: string;
   isOptional?: boolean;
+}
+
+// Client-side automated WebP image converter & compressor
+async function convertImageToWebP(file: File, quality = 0.85): Promise<File> {
+  if (file.type === 'image/svg+xml' || file.type === 'image/webp') {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = document.createElement('img');
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+          const cleanName = rawName.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const webpFile = new File([blob], `${cleanName}.webp`, {
+            type: 'image/webp',
+            lastModified: Date.now(),
+          });
+          resolve(webpFile);
+        },
+        'image/webp',
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+
+    img.src = url;
+  });
 }
 
 export function ImageUploader({
@@ -32,8 +84,8 @@ export function ImageUploader({
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState('');
 
-  const handleUploadFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
+  const handleUploadFile = async (rawFile: File) => {
+    if (!rawFile.type.startsWith('image/')) {
       setError('Please upload an image file (PNG, JPG, WebP, SVG)');
       return;
     }
@@ -41,11 +93,13 @@ export function ImageUploader({
     setUploading(true);
     setError('');
 
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const fileName = `${Date.now()}_${cleanFileName}`;
-    const filePath = `products/${fileName}`;
-
     try {
+      // Auto-convert to optimized WebP format
+      const file = await convertImageToWebP(rawFile);
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${Date.now()}_${cleanFileName}`;
+      const filePath = `products/${fileName}`;
+
       // Strategy 1: Standard Supabase JS Client Upload
       const supabase = createClient();
       const { data: uploadData, error: clientUploadError } = await supabase.storage
@@ -175,14 +229,14 @@ export function ImageUploader({
           {uploading ? (
             <div className="flex flex-col items-center gap-2">
               <div className="w-6 h-6 border-2 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin" />
-              <span className="text-xs font-medium text-gray-600">Uploading image to storage...</span>
+              <span className="text-xs font-medium text-gray-600">Converting to WebP & uploading...</span>
             </div>
           ) : (
             <>
               <Upload className="w-8 h-8 text-gray-400" />
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-700">{placeholder}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Supports PNG, JPG, WebP (Max 5MB)</p>
+                <p className="text-xs text-gray-500 mt-0.5">Supports PNG, JPG, WebP (Auto-converted to optimized WebP)</p>
               </div>
             </>
           )}

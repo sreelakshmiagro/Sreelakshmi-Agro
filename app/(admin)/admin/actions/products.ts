@@ -13,114 +13,107 @@ export async function getProducts(page = 1, pageSize = 20, status?: string) {
 
   const { data, count, error } = await query.range(start, end).order('created_at', { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (error) return { products: [], total: 0, error: error.message };
   
-  return { products: data, total: count || 0 };
+  return { products: data || [], total: count || 0 };
 }
 
 export async function getProduct(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
-  if (error) throw new Error(error.message);
+  if (error) return null;
   return data;
 }
 
 export async function createProduct(formData: any) {
   const supabase = await createClient();
-  const { error } = await supabase.from('products').insert([formData]);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/products');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('products').insert([formData]);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/products');
+    revalidatePath('/products');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function updateProduct(id: string, formData: any) {
   const supabase = await createClient();
-  const { error } = await supabase.from('products').update(formData).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/products');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('products').update(formData).eq('id', id);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/products');
+    revalidatePath('/products');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/products');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/products');
+    revalidatePath('/products');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function deleteProducts(ids: string[]) {
   const supabase = await createClient();
-  const { error } = await supabase.from('products').delete().in('id', ids);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/products');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('products').delete().in('id', ids);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/products');
+    revalidatePath('/products');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function duplicateProduct(id: string) {
   const supabase = await createClient();
   
-  // 1. Fetch original product
-  const { data: original, error: fetchError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .single();
+  try {
+    const { data: original, error: fetchError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  if (fetchError || !original) throw new Error(fetchError?.message || 'Product not found');
+    if (fetchError || !original) return { success: false, error: fetchError?.message || 'Product not found' };
 
-  // 2. Prepare cloned object
-  const { id: _, created_at: __, updated_at: ___, ...rest } = original;
-  const newName = `${original.name} (Copy)`;
-  const newSlug = `${original.slug}-copy-${Math.random().toString(36).substring(2, 6)}`;
+    const { id: _, created_at: __, updated_at: ___, ...rest } = original;
+    const newName = `${original.name} (Copy)`;
+    const newSlug = `${original.slug}-copy-${Math.random().toString(36).substring(2, 6)}`;
 
-  const duplicateData = {
-    ...rest,
-    name: newName,
-    slug: newSlug,
-    status: 'draft', // cloned products start as draft
-    is_featured: false,
-    is_flagship: false,
-  };
+    const duplicateData = {
+      ...rest,
+      name: newName,
+      slug: newSlug,
+      status: 'draft',
+      is_featured: false,
+      is_flagship: false,
+    };
 
-  // 3. Insert duplicate
-  const { data: newProd, error: insertError } = await supabase
-    .from('products')
-    .insert([duplicateData])
-    .select('id')
-    .single();
+    const { data: newProd, error: insertError } = await supabase
+      .from('products')
+      .insert([duplicateData])
+      .select('id')
+      .single();
 
-  if (insertError) throw new Error(insertError.message);
+    if (insertError) return { success: false, error: insertError.message };
 
-  revalidatePath('/admin/products');
-  return { success: true, newId: newProd.id };
-}
-
-export async function uploadProductMedia(formData: FormData) {
-  const file = formData.get('file') as File;
-  if (!file) throw new Error('No file provided');
-
-  const supabase = await createClient();
-  const fileExt = file.name.split('.').pop() || 'png';
-  const fileName = `products/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-  
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const { error: uploadError } = await supabase.storage
-    .from('media')
-    .upload(fileName, buffer, {
-      contentType: file.type,
-      upsert: true,
-    });
-
-  if (uploadError) {
-    throw new Error(uploadError.message);
+    revalidatePath('/admin/products');
+    revalidatePath('/products');
+    return { success: true, newId: newProd.id };
+  } catch (err: any) {
+    return { success: false, error: err.message };
   }
-
-  const { data: publicUrlData } = supabase.storage
-    .from('media')
-    .getPublicUrl(fileName);
-
-  return { publicUrl: publicUrlData.publicUrl };
 }
