@@ -40,12 +40,17 @@ export function GalleryForm({ initialData }: { initialData?: any }) {
       const dataToSave = { ...formData };
       if (!dataToSave.id) delete dataToSave.id;
       
-      await saveGalleryImage(dataToSave);
+      const res = await saveGalleryImage(dataToSave);
+      if (!res.success) {
+        toast.error('Failed to save image', res.error || 'Validation error');
+        setIsSubmitting(false);
+        return;
+      }
       toast.success('Gallery image saved successfully');
       router.push('/admin/gallery');
       router.refresh();
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error('Submission error', err.message);
       setIsSubmitting(false);
     }
   };
@@ -121,8 +126,9 @@ export function GalleryForm({ initialData }: { initialData?: any }) {
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-brand-primary focus:border-brand-primary text-sm"
           >
+            <option value="published">Published (Visible)</option>
             <option value="active">Active (Visible)</option>
-            <option value="inactive">Inactive (Hidden)</option>
+            <option value="draft">Draft (Hidden)</option>
           </select>
         </div>
         
