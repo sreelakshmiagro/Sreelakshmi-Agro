@@ -18,6 +18,11 @@ export async function generateMetadata({
     alternates: {
       canonical: `https://sreelakshmiagro.com/products/${resolvedParams.slug}`,
     },
+    openGraph: {
+      title: `${product.name} | Sreelakshmi Agro Industries`,
+      description: product.short_description,
+      images: product.image ? [{ url: product.image }] : [],
+    },
   };
 }
 
@@ -33,5 +38,31 @@ export default async function ProductPage({
     return notFound();
   }
 
-  return <ProductDetail product={product} />;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.image || (product.media && product.media[0]),
+    "description": product.short_description || product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "Sreelakshmi Agro Industries"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://sreelakshmiagro.com/products/${resolvedParams.slug}`,
+      "priceCurrency": "INR",
+      "availability": "https://schema.org/InStock"
+    }
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetail product={product} />
+    </>
+  );
 }

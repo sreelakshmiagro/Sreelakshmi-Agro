@@ -1,9 +1,10 @@
 "use server";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 // ─── Products ───────────────────────────────────────────
-export async function getPublishedProducts() {
+export const getPublishedProducts = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
@@ -11,9 +12,9 @@ export async function getPublishedProducts() {
     .eq("status", "published")
     .order("sort_order", { ascending: true });
   return data || [];
-}
+});
 
-export async function getProductBySlug(slug: string) {
+export const getProductBySlug = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
@@ -22,10 +23,10 @@ export async function getProductBySlug(slug: string) {
     .eq("status", "published")
     .single();
   return data;
-}
+});
 
 // ─── Recipes ────────────────────────────────────────────
-export async function getPublishedRecipes(productSlug?: string) {
+export const getPublishedRecipes = cache(async (productSlug?: string) => {
   const supabase = await createClient();
   let query = supabase
     .from("recipes")
@@ -39,10 +40,10 @@ export async function getPublishedRecipes(productSlug?: string) {
 
   const { data } = await query;
   return data || [];
-}
+});
 
 // ─── Testimonials ───────────────────────────────────────
-export async function getPublishedTestimonials() {
+export const getPublishedTestimonials = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("testimonials")
@@ -50,10 +51,10 @@ export async function getPublishedTestimonials() {
     .eq("status", "published")
     .order("sort_order", { ascending: true });
   return data || [];
-}
+});
 
 // ─── FAQs ───────────────────────────────────────────────
-export async function getPublishedFAQs(category?: string) {
+export const getPublishedFAQs = cache(async (category?: string) => {
   const supabase = await createClient();
   let query = supabase
     .from("faqs")
@@ -63,10 +64,10 @@ export async function getPublishedFAQs(category?: string) {
   if (category) query = query.eq("category", category);
   const { data } = await query;
   return data || [];
-}
+});
 
 // ─── Team Members ───────────────────────────────────────
-export async function getPublishedTeamMembers() {
+export const getPublishedTeamMembers = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("team_members")
@@ -74,10 +75,10 @@ export async function getPublishedTeamMembers() {
     .eq("status", "published")
     .order("sort_order", { ascending: true });
   return data || [];
-}
+});
 
 // ─── Jobs ───────────────────────────────────────────────
-export async function getPublishedJobs() {
+export const getPublishedJobs = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("jobs")
@@ -85,10 +86,10 @@ export async function getPublishedJobs() {
     .eq("status", "published")
     .order("created_at", { ascending: false });
   return data || [];
-}
+});
 
 // ─── Gallery ────────────────────────────────────────────
-export async function getPublishedGallery() {
+export const getPublishedGallery = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("gallery_images")
@@ -96,10 +97,10 @@ export async function getPublishedGallery() {
     .in("status", ["active", "published"])
     .order("sort_order", { ascending: true });
   return data || [];
-}
+});
 
 // ─── Site Settings ──────────────────────────────────────
-export async function getSiteSettings() {
+export const getSiteSettings = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.from("site_settings").select("*");
   const settings: Record<string, string> = {};
@@ -107,10 +108,10 @@ export async function getSiteSettings() {
     settings[s.setting_key] = s.setting_value || "";
   });
   return settings;
-}
+});
 
 // ─── Menu Items ─────────────────────────────────────────
-export async function getMenuItems(location: string) {
+export const getMenuItems = cache(async (location: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("menu_items")
@@ -119,10 +120,10 @@ export async function getMenuItems(location: string) {
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
   return data || [];
-}
+});
 
 // ─── Page Sections ──────────────────────────────────────
-export async function getPageSections(pageSlug: string) {
+export const getPageSections = cache(async (pageSlug: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("page_sections")
@@ -131,10 +132,10 @@ export async function getPageSections(pageSlug: string) {
     .eq("status", "active")
     .order("sort_order", { ascending: true });
   return data || [];
-}
+});
 
 // ─── Form Configurations ───────────────────────────────
-export async function getFormConfig(key: string) {
+export const getFormConfig = cache(async (key: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("site_settings")
@@ -149,4 +150,4 @@ export async function getFormConfig(key: string) {
     }
   }
   return null;
-}
+});
