@@ -26,7 +26,8 @@ const dancingScript = Dancing_Script({
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
-  const faviconUrl = settings.site_favicon || "/assets/Sreelakshmiagro logo.png";
+  const rawFavicon = settings.site_favicon || "/icon.png";
+  const faviconUrl = encodeURI(rawFavicon);
 
   return {
     title: {
@@ -39,11 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: "Sreelakshmi Agro Industries" }],
     icons: {
       icon: [
-        { url: faviconUrl },
-        { url: "/assets/Sreelakshmiagro logo.png", type: "image/png" }
+        { url: "/favicon.ico", sizes: "any" },
+        { url: faviconUrl, type: "image/png" }
       ],
-      shortcut: [faviconUrl],
-      apple: [faviconUrl],
+      shortcut: ["/favicon.ico"],
+      apple: ["/apple-icon.png"],
     },
     openGraph: {
       title: "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products",
@@ -67,7 +68,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSiteSettings();
-  const faviconUrl = settings.site_favicon || "/assets/Sreelakshmiagro logo.png";
+  const rawFavicon = settings.site_favicon || "/icon.png";
+  const faviconUrl = encodeURI(rawFavicon);
 
   return (
     <html
@@ -76,9 +78,10 @@ export default async function RootLayout({
       className={`${lora.variable} ${inter.variable} ${dancingScript.variable} antialiased light`}
     >
       <head>
-        <link rel="icon" href={faviconUrl} sizes="any" />
-        <link rel="shortcut icon" href={faviconUrl} />
-        <link rel="apple-touch-icon" href={faviconUrl} />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" href={faviconUrl} />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
       <body style={{ colorScheme: "light" }} className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         <Suspense fallback={null}>
