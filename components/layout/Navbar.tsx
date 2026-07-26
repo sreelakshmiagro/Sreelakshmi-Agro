@@ -115,10 +115,17 @@ export default function Navbar() {
             alt="Sreelakshmi Agro Industries Logo"
             width={160}
             height={50}
-            className="w-auto h-9 object-contain transition-transform duration-300 group-hover:scale-102"
+            className="w-auto h-7 sm:h-9 object-contain transition-transform duration-300 group-hover:scale-102"
             priority
           />
         </Link>
+
+        {/* Premium Classic Brand Title (Mobile Screen Only - Centered in Header) */}
+        <div className="flex lg:hidden items-center justify-center flex-1 px-2 text-center">
+          <span className="font-serif text-[11px] sm:text-xs font-bold text-brand-primary tracking-wider uppercase truncate max-w-[170px] sm:max-w-none">
+            Sreelakshmi Agro Industries
+          </span>
+        </div>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-7">
