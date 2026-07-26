@@ -14,6 +14,7 @@ export default async function FormsPage() {
     {
       title: 'Distributor Enquiries',
       count: counts.distributors,
+      total: counts.distributorsTotal,
       href: '/admin/forms/distributors',
       icon: Users,
       color: 'bg-blue-50 text-blue-600',
@@ -21,6 +22,7 @@ export default async function FormsPage() {
     {
       title: 'Contact Submissions',
       count: counts.contacts,
+      total: counts.contactsTotal,
       href: '/admin/forms/contacts',
       icon: FileText,
       color: 'bg-green-50 text-green-600',
@@ -28,6 +30,7 @@ export default async function FormsPage() {
     {
       title: 'Job Applications',
       count: counts.applications,
+      total: counts.applicationsTotal,
       href: '/admin/forms/applications',
       icon: Briefcase,
       color: 'bg-purple-50 text-purple-600',
@@ -78,8 +81,11 @@ export default async function FormsPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 group-hover:text-brand-primary transition-colors">{card.title}</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {card.count} unread submissions
+                  <p className="mt-1 text-sm font-bold text-brand-primary">
+                    {card.count} {card.count === 1 ? 'submission' : 'submissions'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {card.total} total received in database
                   </p>
                 </div>
               </Link>

@@ -86,16 +86,22 @@ export async function deleteJobApplication(id: string) {
 export async function getFormCounts() {
   const supabase = await createClient();
   
-  const [distributors, contacts, applications] = await Promise.all([
-    supabase.from('distributor_inquiries').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
-    supabase.from('contact_inquiries').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
-    supabase.from('job_applications').select('*', { count: 'exact', head: true }).eq('status', 'unread')
+  const [distributorsTotal, contactsTotal, applicationsTotal, distUnread, contactUnread, appUnread] = await Promise.all([
+    supabase.from('distributor_inquiries').select('*', { count: 'exact', head: true }),
+    supabase.from('contact_inquiries').select('*', { count: 'exact', head: true }),
+    supabase.from('job_applications').select('*', { count: 'exact', head: true }),
+    supabase.from('distributor_inquiries').select('*', { count: 'exact', head: true }).in('status', ['submitted', 'unread']),
+    supabase.from('contact_inquiries').select('*', { count: 'exact', head: true }).in('status', ['submitted', 'unread']),
+    supabase.from('job_applications').select('*', { count: 'exact', head: true }).in('status', ['submitted', 'unread']),
   ]);
   
   return {
-    distributors: distributors.count || 0,
-    contacts: contacts.count || 0,
-    applications: applications.count || 0
+    distributors: distUnread.count ?? distributorsTotal.count ?? 0,
+    contacts: contactUnread.count ?? contactsTotal.count ?? 0,
+    applications: appUnread.count ?? applicationsTotal.count ?? 0,
+    distributorsTotal: distributorsTotal.count || 0,
+    contactsTotal: contactsTotal.count || 0,
+    applicationsTotal: applicationsTotal.count || 0,
   };
 }
 
