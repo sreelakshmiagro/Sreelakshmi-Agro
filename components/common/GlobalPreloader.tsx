@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -52,95 +51,32 @@ export function PreloaderUI() {
   );
 }
 
-function NavigationEvents({ onNavigateComplete }: { onNavigateComplete: () => void }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    onNavigateComplete();
-  }, [pathname, searchParams, onNavigateComplete]);
-
-  return null;
-}
-
 export default function GlobalPreloader() {
   const [loading, setLoading] = useState(true);
-  const [navigating, setNavigating] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Initial load duration (1.0 second)
+  // Initial load duration (0.7 second) - only on initial site visit/refresh
   useEffect(() => {
     setMounted(true);
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 700);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleRouteComplete = () => {
-    if (!mounted) return;
-    const timer = setTimeout(() => {
-      setNavigating(false);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  };
-
-  // Listen to link clicks without blocking touch/scroll event propagation
-  useEffect(() => {
-    const handleLinkClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const anchor = target.closest("a");
-
-      if (anchor && anchor.href) {
-        try {
-          const targetUrl = new URL(anchor.href, window.location.href);
-          const currentUrl = new URL(window.location.href);
-
-          if (
-            targetUrl.origin === currentUrl.origin &&
-            (targetUrl.pathname !== currentUrl.pathname || targetUrl.search !== currentUrl.search) &&
-            !anchor.target &&
-            !e.ctrlKey &&
-            !e.metaKey
-          ) {
-            setTimeout(() => {
-              setNavigating(true);
-            }, 0);
-          }
-        } catch {
-          // ignore
-        }
-      }
-    };
-
-    document.addEventListener("click", handleLinkClick, { passive: true });
-    return () => document.removeEventListener("click", handleLinkClick);
-  }, []);
-
-  if (!mounted) return null;
+  if (!mounted || !loading) return null;
 
   return (
-    <>
-      <Suspense fallback={null}>
-        <NavigationEvents onNavigateComplete={handleRouteComplete} />
-      </Suspense>
-
-      {/* Full Screen Classic Logo Preloader Overlay - pointer-events-none ensures scroll is never blocked */}
-      <AnimatePresence>
-        {(loading || navigating) && (
-          <motion.div
-            key="classic-logo-preloader"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.3, ease: "easeInOut" } }}
-            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDF8F2] pointer-events-none"
-          >
-            <PreloaderUI />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    <AnimatePresence>
+      <motion.div
+        key="initial-logo-preloader"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.3, ease: "easeInOut" } }}
+        className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#FDF8F2] pointer-events-none"
+      >
+        <PreloaderUI />
+      </motion.div>
+    </AnimatePresence>
   );
 }
