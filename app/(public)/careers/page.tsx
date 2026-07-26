@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getPublishedJobs, getFormConfig } from "@/lib/data";
 import CareersPortal from "@/features/careers/CareersPortal";
-import { TrendingUp, BookOpen, Heart, Sparkles, ShieldCheck } from "lucide-react";
+import { TrendingUp, BookOpen, Heart, Sparkles } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -64,8 +64,15 @@ export default async function CareersPage() {
         </div>
       </section>
 
-      {/* Section 2: Why Work With Us */}
-      <section className="py-20 bg-white border-b border-border-light/60">
+      {/* Section 2: Active Job Openings and Application Form (1st Section) */}
+      <section className="py-16">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+          <CareersPortal jobs={jobs} formConfig={formConfig} />
+        </div>
+      </section>
+
+      {/* Section 3: Our Professional Environment (Moved down) */}
+      <section className="py-20 bg-white border-t border-border-light/60">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="text-center max-w-3xl mx-auto flex flex-col gap-3 mb-16">
             <h2 className="font-serif text-3xl text-text-primary leading-tight">
@@ -99,13 +106,6 @@ export default async function CareersPage() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* Section 3: Openings and Application Form */}
-      <section className="py-20">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-          <CareersPortal jobs={jobs} formConfig={formConfig} />
         </div>
       </section>
 

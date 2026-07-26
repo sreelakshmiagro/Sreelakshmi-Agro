@@ -29,7 +29,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
           } ${className}`}
           {...props}
         >
-          <option value="" disabled>
+          <option value="">
             {placeholder}
           </option>
           {options.map((opt) => (
