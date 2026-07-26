@@ -4,6 +4,7 @@ import "./globals.css";
 import PublicLayoutWrapper from "@/components/layout/PublicLayoutWrapper";
 import { Suspense } from "react";
 import GlobalPreloader from "@/components/common/GlobalPreloader";
+import { getSiteSettings } from "@/lib/data";
 
 const lora = Lora({
   variable: "--font-lora",
@@ -23,41 +24,62 @@ const dancingScript = Dancing_Script({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    template: "%s | Sreelakshmi Agro Industries",
-    default: "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products",
-  },
-  description: "Sreelakshmi Agro Industries manufactures high-quality food products, organic inputs, and our flagship Samba Broken Wheat, bringing traditional health and modern purity to families.",
-  metadataBase: new URL("https://sreelakshmiagro.com"),
-  keywords: ["Sreelakshmi Agro", "Samba Broken Wheat", "Broken Wheat Upma", "Organic Fertilizers", "Agro Industries", "Healthy Wheat Products"],
-  authors: [{ name: "Sreelakshmi Agro Industries" }],
-  openGraph: {
-    title: "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products",
-    description: "Sreelakshmi Agro Industries manufactures high-quality food products, organic inputs, and our flagship Samba Broken Wheat.",
-    url: "https://sreelakshmiagro.com",
-    siteName: "Sreelakshmi Agro Industries",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Sreelakshmi Agro Industries | Premium Food Processing",
-    description: "Discover pure nutrition and traditional wellness with Sreelakshmi Agro Industries' premium products.",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const faviconUrl = settings.site_favicon || "/assets/Sreelakshmiagro logo.png";
 
-export default function RootLayout({
+  return {
+    title: {
+      template: "%s | Sreelakshmi Agro Industries",
+      default: "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products",
+    },
+    description: "Sreelakshmi Agro Industries manufactures high-quality food products, organic inputs, and our flagship Samba Broken Wheat, bringing traditional health and modern purity to families.",
+    metadataBase: new URL("https://sreelakshmiagro.com"),
+    keywords: ["Sreelakshmi Agro", "Samba Broken Wheat", "Broken Wheat Upma", "Organic Fertilizers", "Agro Industries", "Healthy Wheat Products"],
+    authors: [{ name: "Sreelakshmi Agro Industries" }],
+    icons: {
+      icon: [
+        { url: faviconUrl },
+        { url: "/assets/Sreelakshmiagro logo.png", type: "image/png" }
+      ],
+      shortcut: [faviconUrl],
+      apple: [faviconUrl],
+    },
+    openGraph: {
+      title: "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products",
+      description: "Sreelakshmi Agro Industries manufactures high-quality food products, organic inputs, and our flagship Samba Broken Wheat.",
+      url: "https://sreelakshmiagro.com",
+      siteName: "Sreelakshmi Agro Industries",
+      locale: "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Sreelakshmi Agro Industries | Premium Food Processing",
+      description: "Discover pure nutrition and traditional wellness with Sreelakshmi Agro Industries' premium products.",
+    },
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSiteSettings();
+  const faviconUrl = settings.site_favicon || "/assets/Sreelakshmiagro logo.png";
+
   return (
     <html
       lang="en"
       style={{ colorScheme: "light" }}
       className={`${lora.variable} ${inter.variable} ${dancingScript.variable} antialiased light`}
     >
+      <head>
+        <link rel="icon" href={faviconUrl} sizes="any" />
+        <link rel="shortcut icon" href={faviconUrl} />
+        <link rel="apple-touch-icon" href={faviconUrl} />
+      </head>
       <body style={{ colorScheme: "light" }} className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         <Suspense fallback={null}>
           <GlobalPreloader />

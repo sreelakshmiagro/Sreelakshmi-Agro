@@ -3,9 +3,13 @@
 import { useState } from 'react';
 import { upsertSetting } from '@/app/(admin)/admin/actions/settings';
 import { useToast } from '@/components/admin/ui/Toast';
+import { ImageUploader } from '@/components/admin/ui/ImageUploader';
 import { Save, Loader } from 'lucide-react';
 
 const DEFAULT_SETTINGS = [
+  // Branding
+  { setting_key: 'site_favicon', setting_value: '/assets/Sreelakshmiagro logo.png', category: 'Branding', setting_type: 'image' },
+
   // General & Contact Info
   { setting_key: 'site_phone', setting_value: '+91 9847997979', category: 'General', setting_type: 'text' },
   { setting_key: 'site_email', setting_value: 'sreelakshmi7979@gmail.com', category: 'General', setting_type: 'email' },
@@ -27,16 +31,15 @@ const DEFAULT_SETTINGS = [
 ];
 
 export default function SettingsForm({ initialSettings }: { initialSettings: any[] }) {
-  // Merge initialSettings with DEFAULT_SETTINGS so all contact keys exist
   const mergedMap = new Map<string, any>();
   DEFAULT_SETTINGS.forEach(item => mergedMap.set(item.setting_key, item));
-  (initialSettings || []).forEach(item => mergedMap.set(item.setting_key, { ...item, category: item.category || 'General' }));
+  (initialSettings || []).forEach(item => mergedMap.set(item.setting_key, { ...item, category: item.category || (item.setting_key.includes('favicon') ? 'Branding' : 'General') }));
 
   const [settings, setSettings] = useState<any[]>(Array.from(mergedMap.values()));
   const [savingCategory, setSavingCategory] = useState<string | null>(null);
   const toast = useToast();
 
-  const categories = ['Contact Page', 'General', 'Social', 'Analytics', 'Footer'];
+  const categories = ['Branding', 'General', 'Contact Page', 'Social', 'Analytics', 'Footer'];
 
   const handleChange = (key: string, value: string) => {
     setSettings(prev => prev.map(s => s.setting_key === key ? { ...s, setting_value: value } : s));
@@ -72,7 +75,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-gray-100 gap-4">
               <div>
                 <h2 className="text-xl font-bold text-[var(--color-brand-primary)] font-serif">{category} Settings</h2>
-                <p className="text-xs text-gray-500 mt-1">Manage content, titles, descriptions, and contact information.</p>
+                <p className="text-xs text-gray-500 mt-1">Manage content, titles, descriptions, branding logos, and contact info.</p>
               </div>
 
               <button
@@ -99,12 +102,26 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
               {catSettings.map(setting => (
                 <div
                   key={setting.setting_key}
-                  className={setting.setting_key.includes('desc') || setting.setting_key.includes('subtitle') || setting.setting_key.includes('address') ? 'md:col-span-2' : ''}
+                  className={
+                    setting.setting_type === 'image' || setting.setting_key.includes('favicon') || setting.setting_key.includes('desc') || setting.setting_key.includes('subtitle') || setting.setting_key.includes('address')
+                      ? 'md:col-span-2'
+                      : ''
+                  }
                 >
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                     {setting.setting_key.replace(/_/g, ' ')}
                   </label>
-                  {setting.setting_key.includes('desc') || setting.setting_key.includes('subtitle') || setting.setting_key.includes('address') ? (
+
+                  {setting.setting_type === 'image' || setting.setting_key.includes('favicon') ? (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <ImageUploader
+                        label="Website Favicon & Brand Icon (Drag & Drop or Browse)"
+                        value={setting.setting_value || '/assets/Sreelakshmiagro logo.png'}
+                        onChange={(url) => handleChange(setting.setting_key, url)}
+                        placeholder="Drag & drop brand icon or logo for favicon"
+                      />
+                    </div>
+                  ) : setting.setting_key.includes('desc') || setting.setting_key.includes('subtitle') || setting.setting_key.includes('address') ? (
                     <textarea
                       rows={3}
                       value={setting.setting_value || ''}
