@@ -23,17 +23,22 @@ const defaultNavLinks: NavLink[] = [
   { label: "Careers", href: "/careers" },
 ];
 
+// Module-level in-memory cache to prevent re-fetching & blinking on page switches
+let cachedHeaderMenu: NavLink[] | null = null;
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [navLinks, setNavLinks] = useState<NavLink[]>(defaultNavLinks);
+  const [navLinks, setNavLinks] = useState<NavLink[]>(cachedHeaderMenu || defaultNavLinks);
   const lastScrollYRef = useRef(0);
   const pathname = usePathname();
   const openModal = useDistributorModal((state) => state.openModal);
 
-  // Dynamic Header Menu Items Fetch from Supabase
+  // Dynamic Header Menu Items Fetch (with memory cache)
   useEffect(() => {
+    if (cachedHeaderMenu) return;
+
     async function fetchHeaderMenu() {
       try {
         const supabase = createClient();
@@ -49,6 +54,7 @@ export default function Navbar() {
             label: item.label,
             href: item.url,
           }));
+          cachedHeaderMenu = dynamicLinks;
           setNavLinks(dynamicLinks);
         }
       } catch (err) {
@@ -90,11 +96,10 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <motion.header
-      initial={{ y: 0 }}
-      animate={{ y: isVisible ? 0 : -110 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed top-0 left-0 right-0 z-50 py-4"
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 py-4 transition-transform duration-300 ease-out ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
     >
       <div
         className={`max-w-[1280px] w-[calc(100%-2rem)] md:w-[calc(100%-3rem)] xl:w-full mx-auto px-6 md:px-8 flex items-center justify-between transition-all duration-300 rounded-full border bg-white/95 backdrop-blur-md ${
@@ -237,6 +242,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }
