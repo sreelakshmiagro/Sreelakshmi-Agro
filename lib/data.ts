@@ -93,7 +93,7 @@ export async function getPublishedGallery() {
   const { data } = await supabase
     .from("gallery_images")
     .select("*")
-    .eq("status", "published")
+    .in("status", ["active", "published"])
     .order("sort_order", { ascending: true });
   return data || [];
 }

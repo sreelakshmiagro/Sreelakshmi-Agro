@@ -22,19 +22,44 @@ export async function getGalleryImage(id: string) {
   return data;
 }
 
-export async function saveGalleryImage(data: any) {
+export async function saveGalleryImage(rawData: any) {
   const supabase = await createClient();
   
-  if (data.id) {
-    const { error } = await supabase.from('gallery_images').update(data).eq('id', data.id);
-    if (error) throw new Error(error.message);
-  } else {
-    const { error } = await supabase.from('gallery_images').insert([data]);
-    if (error) throw new Error(error.message);
+  const payload: any = {
+    title: rawData.title ? String(rawData.title).trim() : '',
+    alt_text: rawData.alt_text ? String(rawData.alt_text).trim() : '',
+    image_url: rawData.image_url ? String(rawData.image_url).trim() : '',
+    album: rawData.album ? String(rawData.album).trim() : 'general',
+    category: rawData.category ? String(rawData.category).trim() : 'General',
+    status: rawData.status || 'active',
+    sort_order: Number(rawData.sort_order) || 0,
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    if (rawData.id && String(rawData.id).trim() !== '') {
+      const { error } = await supabase
+        .from('gallery_images')
+        .update(payload)
+        .eq('id', rawData.id);
+
+      if (error) throw new Error(error.message);
+    } else {
+      payload.created_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('gallery_images')
+        .insert([payload]);
+
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath('/admin/gallery');
+    revalidatePath('/about');
+    return { success: true };
+  } catch (err: any) {
+    console.error('saveGalleryImage Error:', err);
+    throw new Error(err.message || 'Failed to save gallery image');
   }
-  
-  revalidatePath('/admin/gallery');
-  return { success: true };
 }
 
 export async function deleteGalleryImage(id: string) {
@@ -42,6 +67,7 @@ export async function deleteGalleryImage(id: string) {
   const { error } = await supabase.from('gallery_images').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/admin/gallery');
+  revalidatePath('/about');
   return { success: true };
 }
 
@@ -49,10 +75,11 @@ export async function updateGalleryImageOrder(updates: { id: string; sort_order:
   const supabase = await createClient();
   
   for (const update of updates) {
-    const { error } = await supabase.from('gallery_images').update({ sort_order: update.sort_order }).eq('id', update.id);
+    const { error } = await supabase.from('gallery_images').update({ sort_order: Number(update.sort_order) || 0 }).eq('id', update.id);
     if (error) throw new Error(error.message);
   }
   
   revalidatePath('/admin/gallery');
+  revalidatePath('/about');
   return { success: true };
 }

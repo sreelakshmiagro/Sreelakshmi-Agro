@@ -11,7 +11,7 @@ interface Photo {
   category: string;
 }
 
-const galleryPhotos: Photo[] = [
+const fallbackPhotos: Photo[] = [
   {
     src: "/assets/premium_samba_wheat.jpg",
     title: "Premium Raw Wheat Grains",
@@ -34,8 +34,16 @@ const galleryPhotos: Photo[] = [
   },
 ];
 
-export default function AboutGallery() {
+export default function AboutGallery({ data }: { data?: any[] }) {
   const [activePhoto, setActivePhoto] = useState<Photo | null>(null);
+
+  const displayPhotos: Photo[] = (data && data.length > 0)
+    ? data.map((item: any) => ({
+        src: item.image_url,
+        title: item.title || item.alt_text || "Sreelakshmi Agro Facility",
+        category: item.category || item.album || "Visual Gallery",
+      }))
+    : fallbackPhotos;
 
   return (
     <section id="gallery" className="py-20 bg-white border-b border-border-light overflow-hidden">
@@ -56,7 +64,7 @@ export default function AboutGallery() {
 
         {/* Gallery Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {galleryPhotos.map((photo, i) => (
+          {displayPhotos.map((photo, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.97 }}
@@ -71,7 +79,7 @@ export default function AboutGallery() {
                 src={photo.src}
                 alt={photo.title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-103"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width: 640px) 100vw, 300px"
               />
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

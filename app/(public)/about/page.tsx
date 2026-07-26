@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPublishedTeamMembers, getPublishedTestimonials, getPublishedFAQs } from "@/lib/data";
+import { getPublishedTeamMembers, getPublishedTestimonials, getPublishedFAQs, getPublishedGallery } from "@/lib/data";
 import FounderProfile from "@/features/about/FounderProfile";
 import MissionVision from "@/features/about/MissionVision";
 import CoreValues from "@/features/about/CoreValues";
@@ -8,6 +8,9 @@ import AboutGallery from "@/features/about/AboutGallery";
 import Testimonials from "@/features/home/Testimonials";
 import FAQPreview from "@/features/home/FAQPreview";
 import FinalCTA from "@/features/home/FinalCTA";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -19,9 +22,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const teamMembers = await getPublishedTeamMembers();
-  const testimonials = await getPublishedTestimonials();
-  const faqs = await getPublishedFAQs();
+  const [teamMembers, testimonials, faqs, galleryImages] = await Promise.all([
+    getPublishedTeamMembers(),
+    getPublishedTestimonials(),
+    getPublishedFAQs(),
+    getPublishedGallery(),
+  ]);
 
   return (
     <div className="flex flex-col">
@@ -38,7 +44,7 @@ export default async function AboutPage() {
       <TeamGrid data={teamMembers} />
 
       {/* 10. Visual Image Gallery Lightbox */}
-      <AboutGallery />
+      <AboutGallery data={galleryImages} />
 
       {/* 11. Testimonials Slide */}
       <Testimonials data={testimonials} />
