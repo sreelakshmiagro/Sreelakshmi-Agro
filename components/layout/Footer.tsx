@@ -1,9 +1,53 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Mail, MapPin, MessageSquare, Facebook, Instagram, Linkedin, Globe } from "lucide-react";
+import { Phone, Mail, MapPin, Instagram } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+interface MenuItem {
+  label: string;
+  href: string;
+}
+
+const defaultFooterLinks: MenuItem[] = [
+  { label: "About Our Journey", href: "/about" },
+  { label: "Product Catalogue", href: "/products" },
+  { label: "Careers & Openings", href: "/careers" },
+  { label: "Contact Support", href: "/contact" },
+  { label: "Become a Distributor", href: "/become-distributor" },
+];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [footerLinks, setFooterLinks] = useState<MenuItem[]>(defaultFooterLinks);
+
+  useEffect(() => {
+    async function fetchFooterMenu() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("menu_items")
+          .select("*")
+          .in("menu_location", ["footer", "quick_links"])
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          const dynamicLinks: MenuItem[] = data.map((item: any) => ({
+            label: item.label,
+            href: item.url,
+          }));
+          setFooterLinks(dynamicLinks);
+        }
+      } catch (err) {
+        console.error("Failed to load footer menu items:", err);
+      }
+    }
+
+    fetchFooterMenu();
+  }, []);
 
   return (
     <footer className="bg-bg-secondary border-t border-border-light pt-16 pb-8">
@@ -46,31 +90,13 @@ export default function Footer() {
               Quick Links
             </h3>
             <ul className="flex flex-col gap-3 text-sm font-sans text-text-secondary">
-              <li>
-                <Link href="/about" className="hover:text-brand-primary transition-colors duration-200">
-                  About Our Journey
-                </Link>
-              </li>
-              <li>
-                <Link href="/products" className="hover:text-brand-primary transition-colors duration-200">
-                  Product Catalogue
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="hover:text-brand-primary transition-colors duration-200">
-                  Careers & Openings
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-brand-primary transition-colors duration-200">
-                  Contact Support
-                </Link>
-              </li>
-              <li>
-                <Link href="/become-distributor" className="hover:text-brand-primary transition-colors duration-200 font-semibold text-brand-primary">
-                  Become a Distributor
-                </Link>
-              </li>
+              {footerLinks.map((link, idx) => (
+                <li key={idx}>
+                  <Link href={link.href} className="hover:text-brand-primary transition-colors duration-200">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -156,7 +182,7 @@ export default function Footer() {
             <Link href="/privacy-policy" className="hover:text-brand-primary transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms-of-use" className="hover:text-brand-primary transition-colors">
+            <Link href="/terms-of-use" className="hover:text-brand-policy transition-colors">
               Terms of Use
             </Link>
           </div>

@@ -7,22 +7,57 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone, MessageCircle } from "lucide-react";
 import { useDistributorModal } from "@/store/useDistributorModal";
+import { createClient } from "@/lib/supabase/client";
 
-const navLinks = [
+interface NavLink {
+  label: string;
+  href: string;
+}
+
+const defaultNavLinks: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "About Us", href: "/about" },
   { label: "Products", href: "/products" },
   { label: "Recipes", href: "/recipes" },
   { label: "Contact Us", href: "/contact" },
+  { label: "Careers", href: "/careers" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [navLinks, setNavLinks] = useState<NavLink[]>(defaultNavLinks);
   const lastScrollYRef = useRef(0);
   const pathname = usePathname();
   const openModal = useDistributorModal((state) => state.openModal);
+
+  // Dynamic Header Menu Items Fetch from Supabase
+  useEffect(() => {
+    async function fetchHeaderMenu() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("menu_items")
+          .select("*")
+          .eq("menu_location", "header")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          const dynamicLinks: NavLink[] = data.map((item: any) => ({
+            label: item.label,
+            href: item.url,
+          }));
+          setNavLinks(dynamicLinks);
+        }
+      } catch (err) {
+        console.error("Failed to load header menu items:", err);
+      }
+    }
+
+    fetchHeaderMenu();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
