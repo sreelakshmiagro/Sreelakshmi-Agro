@@ -837,12 +837,13 @@ export const INDIA_STATES_AND_DISTRICTS: Record<string, string[]> = {
 export const ALL_INDIAN_STATES = Object.keys(INDIA_STATES_AND_DISTRICTS).sort();
 
 export function getDistrictsForState(stateName: string): string[] {
-  if (!stateName) return [];
+  if (!stateName || typeof stateName !== "string") return [];
+  const cleanName = stateName.trim().toLowerCase();
   const foundState = Object.keys(INDIA_STATES_AND_DISTRICTS).find(
-    s => s.toLowerCase() === stateName.toLowerCase()
+    s => s.trim().toLowerCase() === cleanName
   );
   if (foundState) {
-    return INDIA_STATES_AND_DISTRICTS[foundState].sort();
+    return [...INDIA_STATES_AND_DISTRICTS[foundState]].sort();
   }
   return [];
 }

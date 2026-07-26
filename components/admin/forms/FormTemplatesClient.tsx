@@ -60,7 +60,7 @@ const DEFAULT_DISTRIBUTOR_CONFIG = {
       placeholder: 'Select District',
       required: true,
       type: 'select',
-      options: getDistrictsForState('Kerala')
+      options: []
     },
     city: { label: 'CITY / TOWN', placeholder: 'e.g., City Center', required: true, type: 'text' },
     businessType: {

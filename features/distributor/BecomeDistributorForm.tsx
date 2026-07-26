@@ -101,13 +101,11 @@ export default function BecomeDistributorForm({ formConfig: propFormConfig }: { 
   const statesList = Array.from(new Set(stateOptionsFromConfig)).sort();
   const statesOptions = statesList.map((s: any) => ({ label: s, value: s }));
 
+  // Dynamic Districts: ALWAYS lookup districts for the selected state dynamically
   const dynamicDistricts = getDistrictsForState(selectedState);
-  const districtOptionsFromConfig = cfg.fields?.district?.options?.length ? cfg.fields.district.options : dynamicDistricts;
-  const districtsList = Array.from(new Set(districtOptionsFromConfig)).sort();
-  
-  const districtsOptions = districtsList.length > 0
-    ? districtsList.map((d: any) => ({ label: d, value: d }))
-    : [{ label: selectedState ? "No districts found" : "-- Select State First --", value: "" }];
+  const districtsOptions = (selectedState && dynamicDistricts.length > 0)
+    ? dynamicDistricts.map((d: any) => ({ label: d, value: d }))
+    : [{ label: selectedState ? "No districts found for this state" : "-- Select State First --", value: "" }];
 
   // Dynamic Business Types & Volumes from admin formConfig options
   const businessTypesOptions = (cfg.fields?.businessType?.options && cfg.fields.businessType.options.length > 0)
@@ -257,8 +255,13 @@ export default function BecomeDistributorForm({ formConfig: propFormConfig }: { 
                 id="state"
                 options={statesOptions}
                 error={errors.state?.message}
-                {...register("state")}
-                onChange={handleStateChange}
+                {...register("state", {
+                  onChange: (e) => {
+                    const val = e.target.value;
+                    setValue("state", val);
+                    setValue("district", "");
+                  }
+                })}
               />
               <FormSelect
                 label={cfg.fields?.district?.label || "District"}
