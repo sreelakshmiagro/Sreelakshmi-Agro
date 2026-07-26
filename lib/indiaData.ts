@@ -836,7 +836,7 @@ export const INDIA_STATES_AND_DISTRICTS: Record<string, string[]> = {
 
 export const ALL_INDIAN_STATES = Object.keys(INDIA_STATES_AND_DISTRICTS).sort();
 
-export function getDistrictsForState(stateName: string): string[] {
+export function getDistrictsForState(stateName?: string): string[] {
   if (!stateName || typeof stateName !== "string") return [];
   const cleanName = stateName.trim().toLowerCase();
   const foundState = Object.keys(INDIA_STATES_AND_DISTRICTS).find(

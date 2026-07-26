@@ -13,6 +13,7 @@ import FormSelect from "@/components/common/FormSelect";
 import FormTextarea from "@/components/common/FormTextarea";
 import FileUpload from "@/components/common/FileUpload";
 import { useToast } from "@/components/admin/ui/Toast";
+import { ALL_INDIAN_STATES, getDistrictsForState } from "@/lib/indiaData";
 
 interface CareerFormProps {
   positions: { id: string; title: string }[];
@@ -22,7 +23,7 @@ interface CareerFormProps {
 }
 
 const KNOWN_CAREER_KEYS = [
-  "fullName", "positionId", "positionApplied", "phone", "email",
+  "fullName", "positionId", "positionApplied", "phone", "email", "state", "district", "city",
   "experienceYears", "qualification", "currentCompany", "expectedSalary",
   "noticePeriod", "resumeUpload", "resumePath", "coverLetter", "consent"
 ];
@@ -77,6 +78,7 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
     reset,
   } = useForm({
@@ -96,6 +98,17 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
       consent: undefined as any,
     },
   });
+
+  const selectedState = watch("state");
+
+  // Dynamic All India States list sorted alphabetically
+  const statesOptions = ALL_INDIAN_STATES.map((s: string) => ({ label: s, value: s }));
+
+  // Dynamic Districts: ALWAYS lookup districts for the selected state dynamically
+  const dynamicDistricts = getDistrictsForState(selectedState || "");
+  const districtsOptions = (selectedState && dynamicDistricts.length > 0)
+    ? dynamicDistricts.map((d: string) => ({ label: d, value: d }))
+    : [{ label: selectedState ? "No districts found for this state" : "-- Select State First --", value: "" }];
 
   // Position options combining DB active jobs + Admin configured dropdown options
   const configuredPositionOptions = cfg.fields?.positionApplied?.options || [];
@@ -273,6 +286,39 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
                 placeholder={cfg.fields?.email?.placeholder || "you@domain.com"}
                 error={errors.email?.message}
                 {...register("email")}
+              />
+            </div>
+
+            {/* Grid 2.5: Location (All India States & Cascading Districts) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormSelect
+                label={cfg.fields?.state?.label || "State"}
+                id="state"
+                options={statesOptions}
+                placeholder="Select State"
+                error={errors.state?.message}
+                {...register("state", {
+                  onChange: (e) => {
+                    const val = e.target.value;
+                    setValue("state", val);
+                    setValue("district", "");
+                  }
+                })}
+              />
+              <FormSelect
+                label={cfg.fields?.district?.label || "District"}
+                id="district"
+                options={districtsOptions}
+                placeholder="Select District"
+                error={errors.district?.message}
+                {...register("district")}
+              />
+              <FormInput
+                label={cfg.fields?.city?.label || "City / Town (Optional)"}
+                id="city"
+                placeholder={cfg.fields?.city?.placeholder || "e.g., City Center"}
+                error={errors.city?.message}
+                {...register("city")}
               />
             </div>
 

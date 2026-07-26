@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { updateJobApplication, deleteJobApplication } from '@/app/(admin)/admin/actions/forms';
 import { DataTable } from '@/components/admin/ui/DataTable';
 import { useToast } from '@/components/admin/ui/Toast';
-import { Download, Trash2, Calendar, Briefcase, GraduationCap, Building2, DollarSign, Clock, FileText, Mail, Phone } from 'lucide-react';
+import { Download, Trash2, Calendar, Briefcase, GraduationCap, Building2, DollarSign, Clock, FileText, Mail, Phone, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function ApplicationsClient({ data }: { data: any[] }) {
@@ -247,6 +247,18 @@ export function ApplicationsClient({ data }: { data: any[] }) {
                       <div>
                         <p className="text-[11px] font-semibold text-gray-500 uppercase">Mobile Phone</p>
                         <p className="text-xs font-medium text-gray-900 mt-0.5">{d.phone}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-bg-secondary border border-border-light flex items-start gap-3">
+                      <MapPin className="w-4 h-4 text-brand-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-semibold text-gray-500 uppercase">Location (State / District)</p>
+                        <p className="text-xs font-medium text-gray-900 mt-0.5">
+                          {d.state || d.district || d.city
+                            ? [d.city, d.district, d.state].filter(Boolean).join(", ")
+                            : 'Not specified'}
+                        </p>
                       </div>
                     </div>
 
