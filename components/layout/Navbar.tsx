@@ -23,46 +23,62 @@ const defaultNavLinks: NavLink[] = [
   { label: "Careers", href: "/careers" },
 ];
 
-// Module-level in-memory cache to prevent re-fetching & blinking on page switches
+// Module-level in-memory caches to prevent re-fetching & blinking on page switches
 let cachedHeaderMenu: NavLink[] | null = null;
+let cachedMobileTitle: string | null = null;
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [navLinks, setNavLinks] = useState<NavLink[]>(cachedHeaderMenu || defaultNavLinks);
+  const [mobileTitle, setMobileTitle] = useState<string>(cachedMobileTitle || "Sreelakshmi Agro");
   const lastScrollYRef = useRef(0);
   const pathname = usePathname();
   const openModal = useDistributorModal((state) => state.openModal);
 
-  // Dynamic Header Menu Items Fetch (with memory cache)
+  // Dynamic Header Menu Items & Mobile Title Fetch (with memory cache)
   useEffect(() => {
-    if (cachedHeaderMenu) return;
-
-    async function fetchHeaderMenu() {
+    async function fetchHeaderData() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from("menu_items")
-          .select("*")
-          .eq("menu_location", "header")
-          .eq("is_active", true)
-          .order("sort_order", { ascending: true });
 
-        if (!error && data && data.length > 0) {
-          const dynamicLinks: NavLink[] = data.map((item: any) => ({
-            label: item.label,
-            href: item.url,
-          }));
-          cachedHeaderMenu = dynamicLinks;
-          setNavLinks(dynamicLinks);
+        if (!cachedHeaderMenu) {
+          const { data, error } = await supabase
+            .from("menu_items")
+            .select("*")
+            .eq("menu_location", "header")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true });
+
+          if (!error && data && data.length > 0) {
+            const dynamicLinks: NavLink[] = data.map((item: any) => ({
+              label: item.label,
+              href: item.url,
+            }));
+            cachedHeaderMenu = dynamicLinks;
+            setNavLinks(dynamicLinks);
+          }
+        }
+
+        if (!cachedMobileTitle) {
+          const { data: settingData } = await supabase
+            .from("site_settings")
+            .select("setting_value")
+            .eq("setting_key", "mobile_header_title")
+            .single();
+
+          if (settingData?.setting_value) {
+            cachedMobileTitle = settingData.setting_value;
+            setMobileTitle(settingData.setting_value);
+          }
         }
       } catch (err) {
-        console.error("Failed to load header menu items:", err);
+        console.error("Failed to load header navigation data:", err);
       }
     }
 
-    fetchHeaderMenu();
+    fetchHeaderData();
   }, []);
 
   useEffect(() => {
@@ -115,15 +131,15 @@ export default function Navbar() {
             alt="Sreelakshmi Agro Industries Logo"
             width={160}
             height={50}
-            className="w-auto h-7 sm:h-9 object-contain transition-transform duration-300 group-hover:scale-102"
+            className="w-auto h-8 sm:h-9 object-contain transition-transform duration-300 group-hover:scale-102"
             priority
           />
         </Link>
 
-        {/* Premium Classic Brand Title (Mobile Screen Only - Centered in Header) */}
+        {/* Premium Classic Mobile Title (Editable from Admin Panel -> Settings) */}
         <div className="flex lg:hidden items-center justify-center flex-1 px-2 text-center">
-          <span className="font-serif text-[11px] sm:text-xs font-bold text-brand-primary tracking-wider uppercase truncate max-w-[170px] sm:max-w-none">
-            Sreelakshmi Agro Industries
+          <span className="font-serif text-xs sm:text-sm font-bold text-brand-primary tracking-wider uppercase truncate max-w-[180px] sm:max-w-none">
+            {mobileTitle}
           </span>
         </div>
 
@@ -179,7 +195,7 @@ export default function Navbar() {
         {/* Mobile Navigation Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden p-2 text-text-primary focus:outline-none"
+          className="lg:hidden p-2 text-text-primary focus:outline-none shrink-0"
           aria-label="Toggle Navigation Menu"
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

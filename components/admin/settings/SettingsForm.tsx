@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = [
   { setting_key: 'site_address', setting_value: 'Sreelakshmi Agro Industries, Methalapadam, Kodungallur, Thrissur District, Pin Code- 680 669, Kerala', category: 'General', setting_type: 'text' },
   { setting_key: 'site_working_hours', setting_value: 'Mon - Sat: 9:00 AM - 6:00 PM', category: 'General', setting_type: 'text' },
   { setting_key: 'site_whatsapp', setting_value: '919847997979', category: 'General', setting_type: 'text' },
+  { setting_key: 'mobile_header_title', setting_value: 'Sreelakshmi Agro', category: 'General', setting_type: 'text' },
 
   // Contact Page Specific
   { setting_key: 'contact_hero_title', setting_value: 'Contact Sreelakshmi Agro', category: 'Contact Page', setting_type: 'text' },
