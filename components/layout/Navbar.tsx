@@ -23,46 +23,62 @@ const defaultNavLinks: NavLink[] = [
   { label: "Careers", href: "/careers" },
 ];
 
-// Module-level in-memory cache to prevent re-fetching & blinking on page switches
+// Module-level in-memory caches to prevent re-fetching & blinking on page switches
 let cachedHeaderMenu: NavLink[] | null = null;
+let cachedMobileBadge: string | null = null;
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [navLinks, setNavLinks] = useState<NavLink[]>(cachedHeaderMenu || defaultNavLinks);
+  const [mobileBadge, setMobileBadge] = useState<string>(cachedMobileBadge || "Pure Samba Wheat | Thrissur");
   const lastScrollYRef = useRef(0);
   const pathname = usePathname();
   const openModal = useDistributorModal((state) => state.openModal);
 
-  // Dynamic Header Menu Items Fetch (with memory cache)
+  // Dynamic Header Menu Items & Mobile Badge Fetch (with memory cache)
   useEffect(() => {
-    if (cachedHeaderMenu) return;
-
-    async function fetchHeaderMenu() {
+    async function fetchHeaderData() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from("menu_items")
-          .select("*")
-          .eq("menu_location", "header")
-          .eq("is_active", true)
-          .order("sort_order", { ascending: true });
 
-        if (!error && data && data.length > 0) {
-          const dynamicLinks: NavLink[] = data.map((item: any) => ({
-            label: item.label,
-            href: item.url,
-          }));
-          cachedHeaderMenu = dynamicLinks;
-          setNavLinks(dynamicLinks);
+        if (!cachedHeaderMenu) {
+          const { data, error } = await supabase
+            .from("menu_items")
+            .select("*")
+            .eq("menu_location", "header")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true });
+
+          if (!error && data && data.length > 0) {
+            const dynamicLinks: NavLink[] = data.map((item: any) => ({
+              label: item.label,
+              href: item.url,
+            }));
+            cachedHeaderMenu = dynamicLinks;
+            setNavLinks(dynamicLinks);
+          }
+        }
+
+        if (!cachedMobileBadge) {
+          const { data: settingData } = await supabase
+            .from("site_settings")
+            .select("setting_value")
+            .eq("setting_key", "mobile_header_badge")
+            .single();
+
+          if (settingData?.setting_value) {
+            cachedMobileBadge = settingData.setting_value;
+            setMobileBadge(settingData.setting_value);
+          }
         }
       } catch (err) {
-        console.error("Failed to load header menu items:", err);
+        console.error("Failed to load header navigation data:", err);
       }
     }
 
-    fetchHeaderMenu();
+    fetchHeaderData();
   }, []);
 
   useEffect(() => {
@@ -97,15 +113,15 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 py-4 transition-transform duration-300 ease-out ${
+      className={`fixed top-0 left-0 right-0 z-50 py-3 sm:py-4 transition-transform duration-300 ease-out ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
       <div
-        className={`max-w-[1280px] w-[calc(100%-2rem)] md:w-[calc(100%-3rem)] xl:w-full mx-auto px-6 md:px-8 flex items-center justify-between transition-all duration-300 rounded-full border bg-white/95 backdrop-blur-md ${
+        className={`max-w-[1280px] w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] md:w-[calc(100%-3rem)] xl:w-full mx-auto px-4 sm:px-6 md:px-8 flex items-center justify-between transition-all duration-300 rounded-full border bg-white/95 backdrop-blur-md ${
           isScrolled
-            ? "border-[#EFE9E0] shadow-md py-2.5"
-            : "border-transparent shadow-sm py-4"
+            ? "border-[#EFE9E0] shadow-md py-2 sm:py-2.5"
+            : "border-transparent shadow-sm py-2.5 sm:py-4"
         }`}
       >
         {/* Logo */}
@@ -115,12 +131,19 @@ export default function Navbar() {
             alt="Sreelakshmi Agro Industries Logo"
             width={160}
             height={50}
-            className="w-auto h-9 object-contain transition-transform duration-300 group-hover:scale-102"
+            className="w-auto h-7 sm:h-9 object-contain transition-transform duration-300 group-hover:scale-102"
             priority
           />
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Option 4: Mobile View Brand Badge (Mobile Only - Hidden on Desktop) */}
+        <div className="flex lg:hidden items-center justify-center flex-1 px-2">
+          <span className="font-sans text-[10px] sm:text-xs font-bold text-brand-primary bg-brand-primary/10 px-2.5 sm:px-3 py-1 rounded-full border border-brand-primary/20 tracking-wider uppercase truncate max-w-[160px] sm:max-w-none text-center">
+            {mobileBadge}
+          </span>
+        </div>
+
+        {/* Desktop Navigation Links (Desktop Only - Unchanged) */}
         <nav className="hidden lg:flex items-center gap-7">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
@@ -141,7 +164,7 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Desktop Action CTAs */}
+        {/* Desktop Action CTAs (Desktop Only - Unchanged) */}
         <div className="hidden lg:flex items-center gap-4 shrink-0">
           <a
             href="https://wa.me/919847997979"
@@ -172,7 +195,7 @@ export default function Navbar() {
         {/* Mobile Navigation Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden p-2 text-text-primary focus:outline-none"
+          className="lg:hidden p-1.5 sm:p-2 text-text-primary focus:outline-none shrink-0"
           aria-label="Toggle Navigation Menu"
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
