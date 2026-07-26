@@ -113,11 +113,13 @@ export default function CareerForm({ positions, selectedPositionId = "", onSucce
     ? dynamicDistricts.map((d: string) => ({ label: d, value: d }))
     : [{ label: selectedState ? "No districts found for this state" : "-- Select State First --", value: "" }];
 
-  // Position options combining DB active jobs + Admin configured dropdown options
+  // Position options combining DB active jobs + Admin configured dropdown options + General Opening fallback
   const configuredPositionOptions = cfg.fields?.positionApplied?.options || [];
   const displayPositions = positions && positions.length > 0
     ? positions
-    : (configuredPositionOptions.length > 0 ? configuredPositionOptions.map((title: string) => ({ id: title, title })) : []);
+    : (configuredPositionOptions.length > 0 
+        ? configuredPositionOptions.map((title: string) => ({ id: title, title })) 
+        : [{ id: "General Opening", title: "General Opening / Spontaneous Application" }]);
 
   // Direct upload to Supabase Bucket or Base64 binary PDF fallback
   const handleResumeUpload = async (file: File): Promise<string> => {

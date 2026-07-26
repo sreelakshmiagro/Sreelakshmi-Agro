@@ -79,7 +79,8 @@ const mockJobs: Job[] = [
 ];
 
 export default function CareersPortal({ jobs, formConfig }: { jobs?: any[]; formConfig?: any }) {
-  const displayJobs = jobs && jobs.length > 0
+  const hasJobsProp = Array.isArray(jobs);
+  const displayJobs = hasJobsProp
     ? jobs.map(j => ({
         id: j.id,
         title: j.title,
@@ -92,6 +93,7 @@ export default function CareersPortal({ jobs, formConfig }: { jobs?: any[]; form
         benefits: j.benefits || []
       }))
     : mockJobs;
+
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formPositionId, setFormPositionId] = useState("");
@@ -108,70 +110,96 @@ export default function CareersPortal({ jobs, formConfig }: { jobs?: any[]; form
   return (
     <div className="flex flex-col gap-16">
       
-      {/* Grid of Positions */}
+      {/* Grid of Positions or Empty State */}
       <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
         <div className="border-b border-border-light pb-4">
           <h2 className="font-serif text-2xl font-bold text-text-primary">
             Active Job Openings
           </h2>
           <p className="font-sans text-sm text-text-secondary mt-1">
-            Choose a position to view requirements and apply.
+            {displayJobs.length > 0 
+              ? "Choose a position to view requirements and apply."
+              : "No specific job openings currently listed."}
           </p>
         </div>
 
-        <div className="flex flex-col gap-4">
-          {displayJobs.map((job) => (
-            <motion.div
-              key={job.id}
-              whileHover={{ y: -2 }}
-              className="bg-white p-6 rounded-xl border border-border-light shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-brand-primary transition-colors group"
-            >
-              <div className="flex flex-col gap-2">
-                <span className="font-sans text-xs font-bold text-brand-primary uppercase tracking-wider">
-                  {job.department}
-                </span>
-                <h3 className="font-serif text-lg font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-                  {job.title}
-                </h3>
-                
-                {/* Meta details */}
-                <div className="flex flex-wrap items-center gap-4 text-xs font-sans text-text-secondary">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-brand-primary shrink-0" />
-                    <span>{job.location}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-brand-primary shrink-0" />
-                    <span>{job.type}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-brand-primary shrink-0" />
-                    <span>{job.experience}</span>
+        {displayJobs.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {displayJobs.map((job) => (
+              <motion.div
+                key={job.id}
+                whileHover={{ y: -2 }}
+                className="bg-white p-6 rounded-xl border border-border-light shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-brand-primary transition-colors group"
+              >
+                <div className="flex flex-col gap-2">
+                  <span className="font-sans text-xs font-bold text-brand-primary uppercase tracking-wider">
+                    {job.department}
+                  </span>
+                  <h3 className="font-serif text-lg font-bold text-text-primary group-hover:text-brand-primary transition-colors">
+                    {job.title}
+                  </h3>
+                  
+                  {/* Meta details */}
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-sans text-text-secondary">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                      <span>{job.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                      <span>{job.type}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                      <span>{job.experience}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                <button
-                  onClick={() => {
-                    setSelectedJob(job);
-                    setIsModalOpen(true);
-                  }}
-                  className="w-full sm:w-auto text-center border border-border-light hover:border-brand-primary text-text-secondary hover:text-brand-primary font-sans text-sm font-semibold px-5 py-2.5 rounded transition-colors"
-                >
-                  View Details
-                </button>
-                <button
-                  onClick={() => handleApply(job.id)}
-                  className="w-full sm:w-auto text-center bg-brand-primary hover:bg-brand-secondary text-white font-sans text-sm font-semibold px-5 py-2.5 rounded shadow transition-all duration-300 flex items-center justify-center gap-1.5"
-                >
-                  <span>Apply Now</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                  <button
+                    onClick={() => {
+                      setSelectedJob(job);
+                      setIsModalOpen(true);
+                    }}
+                    className="w-full sm:w-auto text-center border border-border-light hover:border-brand-primary text-text-secondary hover:text-brand-primary font-sans text-sm font-semibold px-5 py-2.5 rounded transition-colors"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleApply(job.id)}
+                    className="w-full sm:w-auto text-center bg-brand-primary hover:bg-brand-secondary text-white font-sans text-sm font-semibold px-5 py-2.5 rounded shadow transition-all duration-300 flex items-center justify-center gap-1.5"
+                  >
+                    <span>Apply Now</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          /* Empty State when zero jobs exist */
+          <div className="bg-white p-8 md:p-12 rounded-2xl border border-border-light shadow-sm text-center flex flex-col items-center gap-4 max-w-2xl mx-auto my-4">
+            <div className="w-16 h-16 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+              <Briefcase className="w-8 h-8" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <h3 className="font-serif text-2xl font-bold text-text-primary">
+                No Active Job Openings Currently
+              </h3>
+              <p className="font-sans text-sm text-text-secondary leading-relaxed">
+                We don&apos;t have any specific open vacancies right now, but we are always eager to meet skilled professionals. You can submit a spontaneous application below and our HR team will contact you when a role opens up!
+              </p>
+            </div>
+            <button
+              onClick={() => handleApply("General Opening")}
+              className="mt-2 bg-brand-primary hover:bg-brand-secondary text-white font-sans text-sm font-semibold px-6 py-3 rounded-lg shadow transition-all duration-200 hover:scale-[1.02] flex items-center gap-2"
+            >
+              <span>Submit General Application</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Dynamic Popups */}
