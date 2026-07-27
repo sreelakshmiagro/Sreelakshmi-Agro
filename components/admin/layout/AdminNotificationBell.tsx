@@ -7,6 +7,7 @@ import { getFormCounts } from '@/app/(admin)/admin/actions/forms';
 
 export function AdminNotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
+  const [hasSeen, setHasSeen] = useState(false);
   const [counts, setCounts] = useState<{
     distributors: number;
     contacts: number;
@@ -22,12 +23,23 @@ export function AdminNotificationBell() {
       const dist = data.distributors || 0;
       const cnt = data.contacts || 0;
       const app = data.applications || 0;
+      const total = dist + cnt + app;
+
       setCounts({
         distributors: dist,
         contacts: cnt,
         applications: app,
-        totalUnread: dist + cnt + app,
+        totalUnread: total,
       });
+
+      if (typeof window !== 'undefined') {
+        const lastSeen = Number(localStorage.getItem('admin_notifications_seen_count') || '0');
+        if (total > lastSeen) {
+          setHasSeen(false); // New submissions arrived!
+        } else if (lastSeen > 0 && total <= lastSeen) {
+          setHasSeen(true); // Already opened and seen
+        }
+      }
     } catch {
       // safe fallback
     }
@@ -49,17 +61,30 @@ export function AdminNotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleToggle = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setHasSeen(true);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('admin_notifications_seen_count', String(counts.totalUnread));
+        }
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       {/* Bell Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className="relative p-2 rounded-full text-gray-500 hover:text-brand-primary hover:bg-gray-100 transition-colors focus:outline-none"
         title="Form Submissions & Notifications"
       >
         <Bell className="w-5 h-5" />
-        {counts.totalUnread > 0 && (
+        {!hasSeen && counts.totalUnread > 0 && (
           <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm animate-pulse">
             {counts.totalUnread > 99 ? '99+' : counts.totalUnread}
           </span>
