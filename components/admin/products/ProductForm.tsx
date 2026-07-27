@@ -203,7 +203,11 @@ export function ProductForm({ productId }: { productId?: string }) {
   const handleDelete = async () => {
     if (!productId) return;
     try {
-      await deleteProduct(productId);
+      const res = await deleteProduct(productId);
+      if (!res.success) {
+        toast.error('Failed to delete product', res.error);
+        return;
+      }
       toast.success('Product deleted successfully');
       router.push('/admin/products');
     } catch (err: any) {

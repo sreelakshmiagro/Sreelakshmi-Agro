@@ -8,54 +8,72 @@ export async function getFaqs(page = 1, pageSize = 50, status?: string) {
   const start = (page - 1) * pageSize;
   const end = start + pageSize - 1;
 
-  let query = supabase.from('faqs').select('*', { count: 'exact' });
-  if (status) query = query.eq('status', status);
+  try {
+    let query = supabase.from('faqs').select('*', { count: 'exact' });
+    if (status) query = query.eq('status', status);
 
-  const { data, count, error } = await query.range(start, end).order('display_order', { ascending: true });
+    const { data, count, error } = await query.range(start, end).order('display_order', { ascending: true });
 
-  if (error) throw new Error(error.message);
-  
-  return { faqs: data, total: count || 0 };
+    if (error) return { faqs: [], total: 0, error: error.message };
+    
+    return { faqs: data || [], total: count || 0 };
+  } catch (err: any) {
+    return { faqs: [], total: 0, error: err.message };
+  }
 }
 
 export async function getFaq(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.from('faqs').select('*').eq('id', id).single();
-  if (error) throw new Error(error.message);
+  if (error) return null;
   return data;
 }
 
 export async function createFaq(formData: any) {
   const supabase = await createClient();
-  const { error } = await supabase.from('faqs').insert([formData]);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/faqs');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('faqs').insert([formData]);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/faqs');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function updateFaq(id: string, formData: any) {
   const supabase = await createClient();
-  const { error } = await supabase.from('faqs').update(formData).eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/faqs');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('faqs').update(formData).eq('id', id);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/faqs');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function deleteFaq(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from('faqs').delete().eq('id', id);
-  if (error) throw new Error(error.message);
-  revalidatePath('/admin/faqs');
-  return { success: true };
+  try {
+    const { error } = await supabase.from('faqs').delete().eq('id', id);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/faqs');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
 
 export async function reorderFaqs(faqs: { id: string; display_order: number }[]) {
   const supabase = await createClient();
-  
-  for (const faq of faqs) {
-    await supabase.from('faqs').update({ display_order: faq.display_order }).eq('id', faq.id);
+  try {
+    for (const faq of faqs) {
+      await supabase.from('faqs').update({ display_order: faq.display_order }).eq('id', faq.id);
+    }
+    revalidatePath('/admin/faqs');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
   }
-  
-  revalidatePath('/admin/faqs');
-  return { success: true };
 }

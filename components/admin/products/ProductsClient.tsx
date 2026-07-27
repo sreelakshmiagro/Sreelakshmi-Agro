@@ -46,7 +46,11 @@ export function ProductsClient({ products, currentPage, totalPages }: ProductsCl
     if (selectedIds.length === 0) return;
     setDeleting(true);
     try {
-      await deleteProducts(selectedIds);
+      const res = await deleteProducts(selectedIds);
+      if (!res.success) {
+        toast.error('Failed to delete products', res.error);
+        return;
+      }
       toast.success(`Successfully deleted ${selectedIds.length} product(s)`);
       setSelectedIds([]);
       setShowBulkDelete(false);
@@ -62,7 +66,11 @@ export function ProductsClient({ products, currentPage, totalPages }: ProductsCl
     if (!singleDeleteId) return;
     setDeleting(true);
     try {
-      await deleteProduct(singleDeleteId);
+      const res = await deleteProduct(singleDeleteId);
+      if (!res.success) {
+        toast.error('Failed to delete product', res.error);
+        return;
+      }
       toast.success('Product deleted successfully');
       setSingleDeleteId(null);
       router.refresh();
