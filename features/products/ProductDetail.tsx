@@ -47,15 +47,7 @@ export default function ProductDetail({ product }: { product?: any }) {
     long_description: `<p>Samba Broken Wheat is a wholesome and nutritious cereal made from carefully selected whole samba wheat grains that are cleaned and coarsely broken to retain their natural goodness. Rich in dietary fiber, protein, vitamins, and essential minerals, it offers a healthy alternative to refined grains.</p>`,
     hero_image: "/assets/samba_wheat.png",
     benefits: defaultBenefits,
-    nutrition_table: [
-      { name: "Energy / Calories", value: "342 Kcal" },
-      { name: "Dietary Fibre", value: "11.2 g" },
-      { name: "Proteins", value: "12.5 g" },
-      { name: "Carbohydrates", value: "71.8 g" },
-      { name: "Calcium", value: "32 mg" },
-      { name: "Iron", value: "3.5 mg" },
-      { name: "Fats", value: "1.2 g" },
-    ],
+    nutrition_table: [],
     faqs: defaultFaqs
   };
 
@@ -71,10 +63,11 @@ export default function ProductDetail({ product }: { product?: any }) {
       ? displayProduct.benefits
       : [];
 
-  // Strictly honor database nutrition_table array. If product exists, do NOT fallback to default if empty!
-  const nutritionTable = product
-    ? (Array.isArray(product.nutrition_table) ? product.nutrition_table.filter((n: any) => n.name && n.value) : [])
-    : (Array.isArray(displayProduct.nutrition_table) ? displayProduct.nutrition_table : []);
+  // Strictly honor database nutrition_table array. Zero hardcoded fallbacks!
+  const rawNutrition = product?.nutrition_table || displayProduct?.nutrition_table;
+  const nutritionTable = Array.isArray(rawNutrition)
+    ? rawNutrition.filter((n: any) => n && n.name && n.name.trim() && n.value && n.value.trim())
+    : [];
 
   return (
     <div className="bg-bg-secondary min-h-screen">
