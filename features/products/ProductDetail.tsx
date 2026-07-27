@@ -30,16 +30,6 @@ const defaultBenefits = [
   },
 ];
 
-const defaultNutrition = [
-  { name: "Energy / Calories", value: "342 Kcal" },
-  { name: "Dietary Fibre", value: "11.2 g" },
-  { name: "Proteins", value: "12.5 g" },
-  { name: "Carbohydrates", value: "71.8 g" },
-  { name: "Calcium", value: "32 mg" },
-  { name: "Iron", value: "3.5 mg" },
-  { name: "Fats", value: "1.2 g" },
-];
-
 const defaultFaqs = [
   { q: "Is Samba Broken Wheat gluten-free?", a: "No. Since it is processed from whole wheat grains, it contains natural gluten. It is not suitable for individuals with Celiac disease or gluten allergies." },
   { q: "What is the shelf life of this package?", a: "Samba Broken Wheat has a natural shelf life of 6 months. To maintain freshness, store in an airtight container in a cool, dry place after opening." },
@@ -57,11 +47,18 @@ export default function ProductDetail({ product }: { product?: any }) {
     long_description: `<p>Samba Broken Wheat is a wholesome and nutritious cereal made from carefully selected whole samba wheat grains that are cleaned and coarsely broken to retain their natural goodness. Rich in dietary fiber, protein, vitamins, and essential minerals, it offers a healthy alternative to refined grains.</p>`,
     hero_image: "/assets/samba_wheat.png",
     benefits: defaultBenefits,
-    nutrition_table: defaultNutrition,
+    nutrition_table: [
+      { name: "Energy / Calories", value: "342 Kcal" },
+      { name: "Dietary Fibre", value: "11.2 g" },
+      { name: "Proteins", value: "12.5 g" },
+      { name: "Carbohydrates", value: "71.8 g" },
+      { name: "Calcium", value: "32 mg" },
+      { name: "Iron", value: "3.5 mg" },
+      { name: "Fats", value: "1.2 g" },
+    ],
     faqs: defaultFaqs
   };
 
-  // Only use defaults if the product object was completely absent; if product was provided, honor its actual lists (even if empty)
   const productFaqs = Array.isArray(product?.faqs)
     ? product.faqs.map((f: any) => ({ question: f.question || f.q || '', answer: f.answer || f.a || '' }))
     : Array.isArray(displayProduct.faqs)
@@ -74,11 +71,10 @@ export default function ProductDetail({ product }: { product?: any }) {
       ? displayProduct.benefits
       : [];
 
-  const nutritionTable = Array.isArray(product?.nutrition_table)
-    ? product.nutrition_table
-    : Array.isArray(displayProduct.nutrition_table)
-      ? displayProduct.nutrition_table
-      : [];
+  // Strictly honor database nutrition_table array. If product exists, do NOT fallback to default if empty!
+  const nutritionTable = product
+    ? (Array.isArray(product.nutrition_table) ? product.nutrition_table.filter((n: any) => n.name && n.value) : [])
+    : (Array.isArray(displayProduct.nutrition_table) ? displayProduct.nutrition_table : []);
 
   return (
     <div className="bg-bg-secondary min-h-screen">
@@ -195,7 +191,7 @@ export default function ProductDetail({ product }: { product?: any }) {
         </section>
       )}
 
-      {/* SECTION 3: Nutrition Specs Table (Optional - Rendered only if present) */}
+      {/* SECTION 3: Nutrition Specs Table (Optional - Hidden completely if no items) */}
       {nutritionTable.length > 0 && (
         <section className="py-16 bg-bg-secondary border-b border-border-light/60">
           <div className="max-w-[1280px] mx-auto px-4 md:px-8">
@@ -203,9 +199,9 @@ export default function ProductDetail({ product }: { product?: any }) {
               <h3 className="font-serif text-2xl font-bold text-text-primary text-center mb-6">
                 Nutritional Facts (Per 100g)
               </h3>
-              <div className="divide-y divide-border-light">
+              <div className="divide-y divide-border-light/70">
                 {nutritionTable.map((nut: any, idx: number) => (
-                  <div key={idx} className="py-3 flex justify-between items-center text-sm font-sans">
+                  <div key={idx} className="py-3.5 flex justify-between items-center text-sm font-sans">
                     <span className="font-medium text-text-secondary">{nut.name}</span>
                     <span className="font-bold text-text-primary">{nut.value}</span>
                   </div>

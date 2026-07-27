@@ -530,15 +530,38 @@ export function ProductForm({ productId }: { productId?: string }) {
 
             {/* Nutrition Table Repeater */}
             <div className="space-y-4 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Nutritional Facts (Optional)</h3>
-                <button
-                  type="button"
-                  onClick={handleAddNutrition}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-primary hover:underline"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Nutrient Row
-                </button>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Nutritional Facts (Per 100g) (Optional)</h3>
+                  <p className="text-xs text-gray-500">If left empty, the Nutritional Facts table will be completely hidden on the website.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNutritionTable([
+                        { name: "Energy / Calories", value: "342 Kcal" },
+                        { name: "Dietary Fibre", value: "11.2 g" },
+                        { name: "Proteins", value: "12.5 g" },
+                        { name: "Carbohydrates", value: "71.8 g" },
+                        { name: "Calcium", value: "32 mg" },
+                        { name: "Iron", value: "3.5 mg" },
+                        { name: "Fats", value: "1.2 g" },
+                      ]);
+                      toast.success("Standard Nutritional Facts table loaded!");
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Preset Standard Facts
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddNutrition}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand-primary hover:underline"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Row
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
