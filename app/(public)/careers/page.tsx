@@ -1,19 +1,27 @@
 import type { Metadata } from "next";
-import { getPublishedJobs, getFormConfig } from "@/lib/data";
+import { getPublishedJobs, getFormConfig, getSeoMetaForPage } from "@/lib/data";
 import CareersPortal from "@/features/careers/CareersPortal";
 import { TrendingUp, BookOpen, Heart, Sparkles } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoMetaForPage("careers");
+  const title = seo?.meta_title || "Careers | Sreelakshmi Agro Industries";
+  const description = seo?.meta_description || "Join our team at Sreelakshmi Agro Industries. Explore current job openings.";
 
-export const metadata: Metadata = {
-  title: "Careers",
-  description: "Join Sreelakshmi Agro Industries. Explore exciting job openings, work culture, learning growth, and careers in FMCG food processing.",
-  keywords: ["Agro Careers", "Food Technologist Jobs", "Milling Jobs", "Sreelakshmi Openings"],
-  alternates: {
-    canonical: "https://sreelakshmiagro.com/careers",
-  },
-};
+  return {
+    title,
+    description,
+    keywords: seo?.focus_keyword ? [seo.focus_keyword, "Agro Careers", "Food Technologist Jobs"] : undefined,
+    alternates: {
+      canonical: "https://sreelakshmiagro.com/careers",
+    },
+    openGraph: {
+      title: seo?.og_title || title,
+      description: seo?.og_description || description,
+      images: seo?.og_image ? [{ url: seo.og_image }] : undefined,
+    },
+  };
+}
 
 const culturalPillars = [
   {

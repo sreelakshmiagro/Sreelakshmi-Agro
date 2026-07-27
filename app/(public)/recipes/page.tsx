@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getPublishedRecipes } from "@/lib/data";
+import { getPublishedRecipes, getSeoMetaForPage } from "@/lib/data";
 import RecipesShowcase from "@/features/recipes/RecipesShowcase";
 
-export const metadata: Metadata = {
-  title: "Recipes | Samba Broken Wheat Cooking Guide",
-  description: "Explore traditional and modern healthy recipes using Sreelakshmi Samba Broken Wheat.",
-  alternates: {
-    canonical: "https://sreelakshmiagro.com/recipes",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoMetaForPage("recipes");
+  const title = seo?.meta_title || "Healthy Recipes | Sreelakshmi Agro Industries";
+  const description = seo?.meta_description || "Discover delicious and nutritious recipes made with Samba Broken Wheat.";
+
+  return {
+    title,
+    description,
+    keywords: seo?.focus_keyword ? [seo.focus_keyword, "broken wheat recipes", "samba wheat upma"] : undefined,
+    alternates: {
+      canonical: "https://sreelakshmiagro.com/recipes",
+    },
+    openGraph: {
+      title: seo?.og_title || title,
+      description: seo?.og_description || description,
+      images: seo?.og_image ? [{ url: seo.og_image }] : undefined,
+    },
+  };
+}
 
 export default async function RecipesPage() {
   const recipes = await getPublishedRecipes();

@@ -151,3 +151,14 @@ export const getFormConfig = cache(async (key: string) => {
   }
   return null;
 });
+
+// ─── SEO Metadata ───────────────────────────────────────
+export const getSeoMetaForPage = cache(async (pageSlug: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("seo_meta")
+    .select("*")
+    .eq("page_slug", pageSlug)
+    .single();
+  return data;
+});

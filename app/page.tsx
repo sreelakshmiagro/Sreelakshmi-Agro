@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPublishedTestimonials, getPublishedFAQs } from "@/lib/data";
+import { getPublishedTestimonials, getPublishedFAQs, getSeoMetaForPage } from "@/lib/data";
 import Hero from "@/features/home/Hero";
 import Introduction from "@/features/home/Introduction";
 import WhyChooseUs from "@/features/home/WhyChooseUs";
@@ -9,13 +9,26 @@ import Testimonials from "@/features/home/Testimonials";
 import FAQPreview from "@/features/home/FAQPreview";
 import FinalCTA from "@/features/home/FinalCTA";
 
-export const metadata: Metadata = {
-  title: "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products",
-  description: "Sreelakshmi Agro Industries is a leading manufacturer of premium parboiled Samba Broken Wheat, organic crop inputs, and agricultural inputs, founded on trust and tradition since 2011.",
-  alternates: {
-    canonical: "https://sreelakshmiagro.com",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoMetaForPage("home");
+
+  const title = seo?.meta_title || "Sreelakshmi Agro Industries | Premium Food Processing & Wheat Products";
+  const description = seo?.meta_description || "Sreelakshmi Agro Industries manufactures high-quality food products and our flagship Samba Broken Wheat.";
+
+  return {
+    title,
+    description,
+    keywords: seo?.focus_keyword ? [seo.focus_keyword, "Sreelakshmi Agro", "Samba Broken Wheat"] : undefined,
+    alternates: {
+      canonical: "https://sreelakshmiagro.com",
+    },
+    openGraph: {
+      title: seo?.og_title || title,
+      description: seo?.og_description || description,
+      images: seo?.og_image ? [{ url: seo.og_image }] : undefined,
+    },
+  };
+}
 
 export default async function HomePage() {
   const testimonials = await getPublishedTestimonials();

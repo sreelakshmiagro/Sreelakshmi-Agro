@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import ContactForm from "@/features/contact/ContactForm";
 import { Phone, Mail, MapPin, Clock, MessageSquare } from "lucide-react";
-import { getSiteSettings, getFormConfig } from "@/lib/data";
+import { getSiteSettings, getFormConfig, getSeoMetaForPage } from "@/lib/data";
 
 const GoogleMap = nextDynamic(() => import("@/components/common/GoogleMap"), {
   loading: () => (
@@ -12,17 +12,25 @@ const GoogleMap = nextDynamic(() => import("@/components/common/GoogleMap"), {
   ),
 });
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoMetaForPage("contact");
+  const title = seo?.meta_title || "Contact Us | Sreelakshmi Agro Industries";
+  const description = seo?.meta_description || "Get in touch with Sreelakshmi Agro Industries for inquiries, partnerships, and support.";
 
-export const metadata: Metadata = {
-  title: "Contact Us",
-  description: "Get in touch with Sreelakshmi Agro Industries. Reach out for sales, product inquiries, distributor partnerships, or careers.",
-  keywords: ["Contact Sreelakshmi Agro", "Agro Industries Phone", "Harvest Valley Address", "Sreelakshmi Email"],
-  alternates: {
-    canonical: "https://sreelakshmiagro.com/contact",
-  },
-};
+  return {
+    title,
+    description,
+    keywords: seo?.focus_keyword ? [seo.focus_keyword, "Contact Sreelakshmi Agro", "Agro Industries Phone"] : undefined,
+    alternates: {
+      canonical: "https://sreelakshmiagro.com/contact",
+    },
+    openGraph: {
+      title: seo?.og_title || title,
+      description: seo?.og_description || description,
+      images: seo?.og_image ? [{ url: seo.og_image }] : undefined,
+    },
+  };
+}
 
 export default async function ContactPage() {
   const [siteSettings, formConfig] = await Promise.all([
