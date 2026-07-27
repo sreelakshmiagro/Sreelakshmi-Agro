@@ -216,6 +216,8 @@ export function ProductsClient({ products, currentPage, totalPages }: ProductsCl
                       </td>
 
                       {/* Actions */}
+                      <td className="p-4 whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={async () => {
@@ -227,24 +229,31 @@ export function ProductsClient({ products, currentPage, totalPages }: ProductsCl
                                 toast.error('Failed to duplicate product', err.message);
                               }
                             }}
-                            className="text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center gap-1"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-sans text-xs font-semibold border border-indigo-200/60 shadow-2xs transition-all hover:scale-105 active:scale-95"
                             title="Duplicate Product"
                           >
-                            <Copy className="w-3.5 h-3.5" /> Duplicate
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Duplicate</span>
                           </button>
                           <Link
                             href={`/admin/products/${p.id}`}
-                            className="text-gray-600 hover:text-brand-primary font-medium text-xs flex items-center gap-1"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-primary/10 hover:bg-brand-primary hover:text-white text-brand-primary font-sans text-xs font-semibold border border-brand-primary/20 shadow-2xs transition-all hover:scale-105 active:scale-95"
+                            title="Edit Product"
                           >
-                            <Edit className="w-3.5 h-3.5" /> Edit
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>Edit</span>
                           </Link>
                           <button
                             type="button"
                             onClick={() => setSingleDeleteId(p.id)}
-                            className="text-red-500 hover:text-red-700 font-medium text-xs flex items-center gap-1"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 font-sans text-xs font-semibold border border-rose-200/60 shadow-2xs transition-all hover:scale-105 active:scale-95"
+                            title="Delete Product"
                           >
-                            <Trash2 className="w-3.5 h-3.5" /> Delete
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
                           </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
