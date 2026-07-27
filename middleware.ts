@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Add the current pathname to headers so server components can read it
   supabaseResponse.headers.set('x-pathname', request.nextUrl.pathname);
   request.headers.set('x-pathname', request.nextUrl.pathname);
 
@@ -46,9 +45,6 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
-
-    // Optional: Check if user has admin role in a real production app
-    // For now we just require authentication for /admin
   }
 
   if (isAuthRoute && user) {

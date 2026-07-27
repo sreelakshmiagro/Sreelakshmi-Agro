@@ -20,11 +20,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Security Headers implementation (Production only to keep dev HMR fast)
+  // Security Headers implementation
   async headers() {
-    if (process.env.NODE_ENV !== "production") {
-      return [];
-    }
     return [
       {
         source: "/(.*)",
@@ -44,6 +41,10 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
           },
           {
             key: "Permissions-Policy",
